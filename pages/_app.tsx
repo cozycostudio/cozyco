@@ -25,8 +25,11 @@ function App({ Component, pageProps }: AppProps) {
         <meta name="description" content={metaDescription} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
-        <meta property="og:image" content="https://cozyco.art/og-image.png" />
-        <meta property="og:url" content="https://cozyco.art" />
+        <meta
+          property="og:image"
+          content="https://cozyco.studio/og-image.png"
+        />
+        <meta property="og:url" content="https://cozyco.studio" />
       </Head>
       <ThemeProvider theme={theme}>
         <GlobalStyles />
