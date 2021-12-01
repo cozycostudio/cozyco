@@ -7,20 +7,22 @@ export const theme = {
   },
   fonts: {
     display:
-      '"Sectra Display", Georgia, serif, Apple Color Emoji, Segoe UI Emoji',
-    heading: "Sectra, Georgia, serif, Apple Color Emoji, Segoe UI Emoji",
+      '"Domaine Display Bold", Georgia, serif, Apple Color Emoji, Segoe UI Emoji',
+    heading:
+      '"Domaine Display Semi", Georgia, serif, Apple Color Emoji, Segoe UI Emoji',
     body: "Mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace",
   },
   fontSizes: {
     xs: "0.75rem",
     s: "1rem",
-    m: "1.5rem",
-    l: "2rem",
+    m: "1.25rem",
+    l: "1.75rem",
     xl: "3rem",
   },
   colors: {
-    fg: "#222438",
+    fg: "#1A1F1A",
     bg: "#F6E6D5",
+    subdued: "rgba(26, 31, 26, 0.5)",
   },
   spacing: {
     xs: "0.5rem",

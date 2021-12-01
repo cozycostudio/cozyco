@@ -2,6 +2,24 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyles = createGlobalStyle`
   @font-face {
+    font-family: "Domaine Display Semi";
+    font-display: fallback;
+    src: url(/fonts/DomaineDisplay-SemiboldItalic.woff) format("woff"),
+      url(/fonts/DomaineDisplay-SemiboldItalic.woff2) format("woff2");
+    font-style: italic;
+    font-weight: bold;
+  }
+
+  @font-face {
+    font-family: "Domaine Display Bold";
+    font-display: fallback;
+    src: url(/fonts/DomaineDisplay-BoldItalic.woff) format("woff"),
+      url(/fonts/DomaineDisplay-BoldItalic.woff2) format("woff2");
+    font-style: italic;
+    font-weight: bold;
+  }
+
+  @font-face {
     font-family: Mono;
     font-display: fallback;
     src: url(/fonts/GT-America-Mono.woff) format("woff"),

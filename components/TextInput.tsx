@@ -10,7 +10,7 @@ const InputWrapper = styled.div<{ margin?: string }>`
 const LoadingWrapper = styled.div`
   position: absolute;
   top: 0;
-  right: ${(p) => p.theme.spacing.s};
+  right: calc(${(p) => p.theme.spacing.s} + 0.25rem);
   bottom: 0;
   display: flex;
   align-items: center;
@@ -50,12 +50,12 @@ export const TextInput = styled(({ margin, isLoading, ...props }: Props) => (
   border-radius: 0.5rem;
   overflow: hidden;
   border: 0.25rem solid ${(p) => p.theme.colors.fg};
-  box-shadow: 0.5rem 0.5rem 0 0 ${(p) => p.theme.colors.fg};
+  box-shadow: 0.25rem 0.25rem 0 0 ${(p) => p.theme.colors.fg};
   transition: border 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 
   &:hover,
   &:focus-visible {
     transform: translate3d(-0.125rem, -0.125rem, 0);
-    box-shadow: 0.75rem 0.75rem 0 0 ${(p) => p.theme.colors.fg};
+    box-shadow: 0.375rem 0.375rem 0 0 ${(p) => p.theme.colors.fg};
   }
 `;
