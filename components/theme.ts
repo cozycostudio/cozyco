@@ -6,10 +6,8 @@ export const theme = {
     l: "70rem",
   },
   fonts: {
-    display:
-      '"Domaine Display Bold", Georgia, serif, Apple Color Emoji, Segoe UI Emoji',
     heading:
-      '"Domaine Display Semi", Georgia, serif, Apple Color Emoji, Segoe UI Emoji',
+      "DomaineDisplayBold, Georgia, serif, Apple Color Emoji, Segoe UI Emoji",
     body: "Mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace",
   },
   fontSizes: {

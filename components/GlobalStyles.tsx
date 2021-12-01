@@ -2,16 +2,7 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyles = createGlobalStyle`
   @font-face {
-    font-family: "Domaine Display Semi";
-    font-display: fallback;
-    src: url(/fonts/DomaineDisplay-SemiboldItalic.woff) format("woff"),
-      url(/fonts/DomaineDisplay-SemiboldItalic.woff2) format("woff2");
-    font-style: italic;
-    font-weight: bold;
-  }
-
-  @font-face {
-    font-family: "Domaine Display Bold";
+    font-family: DomaineDisplayBold;
     font-display: fallback;
     src: url(/fonts/DomaineDisplay-BoldItalic.woff) format("woff"),
       url(/fonts/DomaineDisplay-BoldItalic.woff2) format("woff2");
@@ -26,15 +17,6 @@ export const GlobalStyles = createGlobalStyle`
       url(/fonts/GT-America-Mono.woff2) format("woff2");
     font-style: normal;
     font-weight: normal;
-  }
-
-  @font-face {
-    font-family: Mono;
-    font-display: fallback;
-    src: url(/fonts/GT-America-Mono-Bold.woff) format("woff"),
-      url(/fonts/GT-America-Mono-Bold.woff2) format("woff2");
-    font-style: normal;
-    font-weight: bold;
   }
 
   * {
