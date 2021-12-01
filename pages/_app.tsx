@@ -13,9 +13,9 @@ export interface DefaultPageProps {
 }
 
 function App({ Component, pageProps }: AppProps) {
-  const metaTitle = "Cozy Co.";
+  const metaTitle = "cozy co.";
   const metaDescription =
-    "A place to buy and collect cozy wares for your digital space";
+    "A place to buy and collect cozy wares for your digital space… coming soon";
 
   return (
     <>
