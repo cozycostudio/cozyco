@@ -81,30 +81,32 @@ function Index() {
         />
 
         <Paragraph margin="s 0 0">
-          {data ? (
-            <>
-              {data.isOnList ? (
-                <>
-                  You're on the list!
-                  <br />
-                  &nbsp;
-                </>
-              ) : (
-                <>
-                  Looks like you're not on the list right now.
-                  <br />
-                  Hop in the <a href="/s/discord">Discord</a> and your luck may
-                  change!
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              &nbsp;
-              <br />
-              &nbsp;
-            </>
-          )}
+          <small>
+            {data ? (
+              <>
+                {data.isOnList ? (
+                  <>
+                    You're on the list!
+                    <br />
+                    &nbsp;
+                  </>
+                ) : (
+                  <>
+                    Looks like you're not on the list right now.
+                    <br />
+                    Hop in the <a href="/s/discord">Discord</a> and your luck
+                    may change!
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                &nbsp;
+                <br />
+                &nbsp;
+              </>
+            )}
+          </small>
         </Paragraph>
       </MaxWidthWrapper>
 
