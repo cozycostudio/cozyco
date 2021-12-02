@@ -2,8 +2,9 @@ import React from "react";
 import Head from "next/head";
 import type { AppProps } from "next/app";
 import { ThemeProvider } from "styled-components";
-import { theme } from "../components/theme";
-import { GlobalStyles } from "../components/GlobalStyles";
+import { theme } from "components/theme";
+import { GlobalStyles } from "components/GlobalStyles";
+import { Footer } from "components/Footer";
 
 export interface DefaultPageProps {
   contractHref: string;
@@ -34,6 +35,7 @@ function App({ Component, pageProps }: AppProps) {
       <ThemeProvider theme={theme}>
         <GlobalStyles />
         <Component {...pageProps} />
+        <Footer />
       </ThemeProvider>
     </>
   );

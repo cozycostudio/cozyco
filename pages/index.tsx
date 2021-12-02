@@ -8,7 +8,7 @@ import { MemberListCheckResponse } from "./api/member-list-check";
 import { useQueryState } from "hooks/useQueryState";
 import { isValidAddress } from "utils/eth";
 import { TextInput } from "components/TextInput";
-import { Footer } from "components/Footer";
+import { Quilty } from "components/Quilty";
 
 function Index() {
   const [address, setAddress] = useQueryState("address");
@@ -39,6 +39,7 @@ function Index() {
   return (
     <PageContent>
       <MaxWidthWrapper as="section">
+        <Quilty />
         <H1>cozy co.</H1>
         <Paragraph margin="s 0 0">
           The Stitcher, known for creating{" "}
@@ -109,8 +110,6 @@ function Index() {
           </small>
         </Paragraph>
       </MaxWidthWrapper>
-
-      <Footer />
     </PageContent>
   );
 }

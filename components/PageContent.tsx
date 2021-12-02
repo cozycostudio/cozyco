@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const PageContent = styled.main`
-  min-height: 76vh;
+  flex: 1;
   position: relative;
   z-index: 2;
   background: ${(p) => p.theme.colors.bg};

@@ -1,8 +1,8 @@
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { PageContent } from "../components/PageContent";
-import { H2, Paragraph } from "../components/Typography";
+import { PageContent } from "components/PageContent";
+import { H2, Paragraph } from "components/Typography";
 
 function Error404() {
   return (

@@ -28,6 +28,12 @@ export const GlobalStyles = createGlobalStyle`
     box-sizing: border-box;
   }
 
+  html,
+  body,
+  div#__next {
+    height: 100%;
+  }
+
   html {
     background: ${(p) => p.theme.colors.bg};
   }
@@ -41,6 +47,11 @@ export const GlobalStyles = createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: rgba(255, 255, 255, 0); 
+  }
+
+  div#__next {
+    display: flex;
+    flex-direction: column;
   }
 
   button, input[type="submit"], input[type="reset"] {
