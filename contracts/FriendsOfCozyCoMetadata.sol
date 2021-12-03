@@ -1,14 +1,27 @@
 //SPDX-License-Identifier: Unlicense
-/// @title: Friends of Cozy Co. metadata
-/// @author: samking.eth
+/// @title: Friends of cozy co. metadata
+/// @author: The Stitcher AKA samking.eth
+/*            
+
+
+
+           :-.:-   .-:.=:    -==. :- .===  .==:      :-::-   .--.-:
+         *@%..=@--%@+  %@# .#%%@@#-+.-@@#  #@@-    +@@: -@*:%@#  *@%.
+        %@@:  :.-@@%  .@@@  ....:-:  %@@: -@@#    +@@=  ::.@@@.  %@@:
+        %@@-    -@@+  #@@--=*%#*++*.-@@%.:%@@:    *@@+   ..@@#  +@@=-%@*
+         =*#*=:  .+=.=+-  ==..=*#+: .**+--@@+      -***=-  .=+.-+-  .**=
+                                   +@%. .@@=
+                                    :=..-:
+
+*/
 
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Base64.sol";
-import "./IFriendTokenTypeMetadata.sol";
+import "./IMembershipTokenMetadata.sol";
 
-contract FriendsOfCozyCoMetadata is Ownable, IFriendTokenTypeMetadata {
+contract FriendsOfCozyCoMetadata is Ownable, IMembershipTokenMetadata {
     string public name;
     string public description;
     string public imageURI;
@@ -59,7 +72,9 @@ contract FriendsOfCozyCoMetadata is Ownable, IFriendTokenTypeMetadata {
                                 )
                             )
                             : "",
-                        '"}'
+                        '", "attributes": [{ "trait_type": "Membership", "value": "',
+                        name,
+                        '" }]}'
                     )
                 )
             )

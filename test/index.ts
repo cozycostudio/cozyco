@@ -73,72 +73,76 @@ describe("FriendsOfCozyCoMetadata contract", () => {
   });
 });
 
-describe("CozyCoFriends contract", () => {
-  let cozyCoFriends: Contract;
+describe("CozyCoMembership contract", () => {
+  let cozyCoMembership: Contract;
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let addr2: SignerWithAddress;
   let metadata: Contract;
 
   beforeEach(async () => {
-    const CozyCoFriends = await ethers.getContractFactory("CozyCoFriends");
+    const CozyCoMembership = await ethers.getContractFactory(
+      "CozyCoMembership"
+    );
     [owner, addr1, addr2] = await ethers.getSigners();
-    cozyCoFriends = await CozyCoFriends.deploy();
+    cozyCoMembership = await CozyCoMembership.deploy();
     const Metadata = await ethers.getContractFactory("FriendsOfCozyCoMetadata");
     metadata = await Metadata.deploy("name", "desc", "ipfs://image");
-    await cozyCoFriends.setTokenTypeMetadataAddress(0, metadata.address);
-    await cozyCoFriends.setTokenTypeMetadataAddress(1, metadata.address);
+    await cozyCoMembership.setTokenMetadataAddress(0, metadata.address);
+    await cozyCoMembership.setTokenMetadataAddress(1, metadata.address);
   });
 
   describe("Deployment", () => {
     it("should set the correct owner", async () => {
-      expect(await cozyCoFriends.owner()).to.equal(owner.address);
+      expect(await cozyCoMembership.owner()).to.equal(owner.address);
     });
   });
 
   describe("Roles", () => {
     it("should set the correct roles", async function () {
-      const AdminRole = await cozyCoFriends.DEFAULT_ADMIN_ROLE();
-      const IssuerRole = await cozyCoFriends.ISSUER_ROLE();
-      const RevokerRole = await cozyCoFriends.REVOKER_ROLE();
-      expect(await cozyCoFriends.getRoleMember(AdminRole, 0)).to.equal(
+      const AdminRole = await cozyCoMembership.DEFAULT_ADMIN_ROLE();
+      const IssuerRole = await cozyCoMembership.ISSUER_ROLE();
+      const RevokerRole = await cozyCoMembership.REVOKER_ROLE();
+      expect(await cozyCoMembership.getRoleMember(AdminRole, 0)).to.equal(
         owner.address
       );
-      expect(await cozyCoFriends.getRoleMember(IssuerRole, 0)).to.equal(
+      expect(await cozyCoMembership.getRoleMember(IssuerRole, 0)).to.equal(
         owner.address
       );
-      expect(await cozyCoFriends.getRoleMember(RevokerRole, 0)).to.equal(
+      expect(await cozyCoMembership.getRoleMember(RevokerRole, 0)).to.equal(
         owner.address
       );
     });
 
     it("should allow granting of new roles", async function () {
-      const IssuerRole = await cozyCoFriends.ISSUER_ROLE();
-      await cozyCoFriends.grantRole(IssuerRole, addr1.address);
-      expect(await cozyCoFriends.getRoleMember(IssuerRole, 1)).to.equal(
+      const IssuerRole = await cozyCoMembership.ISSUER_ROLE();
+      await cozyCoMembership.grantRole(IssuerRole, addr1.address);
+      expect(await cozyCoMembership.getRoleMember(IssuerRole, 1)).to.equal(
         addr1.address
       );
     });
 
     it("should not allow issuers to grant roles", async function () {
-      const IssuerRole = await cozyCoFriends.ISSUER_ROLE();
-      await cozyCoFriends.grantRole(IssuerRole, addr1.address);
-      expect(cozyCoFriends.connect(addr1).grantRole(IssuerRole, addr2.address))
-        .to.be.reverted;
+      const IssuerRole = await cozyCoMembership.ISSUER_ROLE();
+      await cozyCoMembership.grantRole(IssuerRole, addr1.address);
+      expect(
+        cozyCoMembership.connect(addr1).grantRole(IssuerRole, addr2.address)
+      ).to.be.reverted;
     });
 
     it("should not allow revokers to grant roles", async function () {
-      const RevokerRole = await cozyCoFriends.REVOKER_ROLE();
-      await cozyCoFriends.grantRole(RevokerRole, addr1.address);
-      expect(cozyCoFriends.connect(addr1).grantRole(RevokerRole, addr2.address))
-        .to.be.reverted;
+      const RevokerRole = await cozyCoMembership.REVOKER_ROLE();
+      await cozyCoMembership.grantRole(RevokerRole, addr1.address);
+      expect(
+        cozyCoMembership.connect(addr1).grantRole(RevokerRole, addr2.address)
+      ).to.be.reverted;
     });
   });
 
   describe("Issuing", () => {
     it("should issue a membership", async () => {
-      expect(await cozyCoFriends.issueMembership(addr1.address, 0))
-        .to.emit(cozyCoFriends, "TransferSingle")
+      expect(await cozyCoMembership.issueMembership(addr1.address, 0))
+        .to.emit(cozyCoMembership, "TransferSingle")
         .withArgs(
           owner.address,
           ethers.constants.AddressZero,
@@ -146,80 +150,95 @@ describe("CozyCoFriends contract", () => {
           0,
           1
         );
-      expect(await cozyCoFriends.balanceOf(addr1.address, 0)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr1.address, 0)).to.equal(1);
     });
 
     it("should issue a membership to many addresses", async () => {
-      await cozyCoFriends.issueMemberships([addr1.address, addr2.address], 0);
-      expect(await cozyCoFriends.balanceOf(addr1.address, 0)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(addr2.address, 0)).to.equal(1);
+      await cozyCoMembership.issueMemberships(
+        [addr1.address, addr2.address],
+        0
+      );
+      expect(await cozyCoMembership.balanceOf(addr1.address, 0)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr2.address, 0)).to.equal(1);
     });
 
     it("should issue a membership to many addresses from the list", async () => {
-      await cozyCoFriends.issueMemberships(membershipList, 0);
-      expect(await cozyCoFriends.balanceOf(membershipList[0], 0)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(membershipList[1], 0)).to.equal(1);
+      await cozyCoMembership.issueMemberships(membershipList, 0);
+      expect(await cozyCoMembership.balanceOf(membershipList[0], 0)).to.equal(
+        1
+      );
+      expect(await cozyCoMembership.balanceOf(membershipList[1], 0)).to.equal(
+        1
+      );
     });
 
     it("should not issue a membership if the token type has no metadata contract", async () => {
       expect(
-        cozyCoFriends.issueMembership(addr1.address, 10)
-      ).to.be.revertedWith("CozyCoFriends: no metadata");
+        cozyCoMembership.issueMembership(addr1.address, 10)
+      ).to.be.revertedWith("CozyCoMembership: no metadata");
     });
 
     it("should not issue a membership if the user already has one", async () => {
       // Issue the first membership token
-      await cozyCoFriends.issueMembership(addr1.address, 0);
+      await cozyCoMembership.issueMembership(addr1.address, 0);
       // Try and issue another
       expect(
-        cozyCoFriends.issueMembership(addr1.address, 0)
-      ).to.be.revertedWith("Already a member");
+        cozyCoMembership.issueMembership(addr1.address, 0)
+      ).to.be.revertedWith("Already has token");
     });
 
     it("should not issue a membership if a user already has one", async () => {
       // Issue one token to one address
-      await cozyCoFriends.issueMembership(addr1.address, 0);
+      await cozyCoMembership.issueMembership(addr1.address, 0);
       // Try and issue to multiple addresses including the one above
       expect(
-        cozyCoFriends.issueMemberships([addr1.address, addr2.address], 0)
-      ).to.be.revertedWith("Already a member");
-      expect(await cozyCoFriends.balanceOf(addr1.address, 0)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(addr2.address, 0)).to.equal(0);
+        cozyCoMembership.issueMemberships([addr1.address, addr2.address], 0)
+      ).to.be.revertedWith("Already has token");
+      expect(await cozyCoMembership.balanceOf(addr1.address, 0)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr2.address, 0)).to.equal(0);
     });
 
     it("should issue memberships of different types", async () => {
-      await cozyCoFriends.issueMemberships([addr1.address, addr2.address], 0);
-      await cozyCoFriends.issueMemberships([addr1.address, addr2.address], 1);
-      expect(await cozyCoFriends.balanceOf(addr1.address, 0)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(addr1.address, 1)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(addr2.address, 0)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(addr2.address, 1)).to.equal(1);
+      await cozyCoMembership.issueMemberships(
+        [addr1.address, addr2.address],
+        0
+      );
+      await cozyCoMembership.issueMemberships(
+        [addr1.address, addr2.address],
+        1
+      );
+      expect(await cozyCoMembership.balanceOf(addr1.address, 0)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr1.address, 1)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr2.address, 0)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr2.address, 1)).to.equal(1);
     });
   });
 
   describe("Revoking", () => {
     it("should revoke a membership", async () => {
       // Issue initial memberships
-      await cozyCoFriends.issueMemberships([addr1.address, addr2.address], 0);
-      expect(await cozyCoFriends.balanceOf(addr1.address, 0)).to.equal(1);
-      expect(await cozyCoFriends.balanceOf(addr2.address, 0)).to.equal(1);
+      await cozyCoMembership.issueMemberships(
+        [addr1.address, addr2.address],
+        0
+      );
+      expect(await cozyCoMembership.balanceOf(addr1.address, 0)).to.equal(1);
+      expect(await cozyCoMembership.balanceOf(addr2.address, 0)).to.equal(1);
 
       // Revoke from addr1
-      await cozyCoFriends.revokeMembership(addr1.address, [0], [1]);
-      expect(await cozyCoFriends.balanceOf(addr1.address, 0)).to.equal(0);
-      expect(await cozyCoFriends.balanceOf(addr2.address, 0)).to.equal(1);
+      await cozyCoMembership.revokeMembership(addr1.address, [0], [1]);
+      expect(await cozyCoMembership.balanceOf(addr1.address, 0)).to.equal(0);
+      expect(await cozyCoMembership.balanceOf(addr2.address, 0)).to.equal(1);
     });
   });
 
   describe("Metadata", () => {
     it("should get the metadata contract for a token type", async () => {
-      expect(await cozyCoFriends.getTokenTypeMetadataAddress(0)).to.eql([
-        true,
-        metadata.address,
-      ]);
+      expect(await cozyCoMembership.getTokenMetadataAddress(0)).to.equal(
+        metadata.address
+      );
     });
 
-    it("should set a token metadata contract for a token type", async () => {
+    it("should set the metadata contract for a token type", async () => {
       const Metadata = await ethers.getContractFactory(
         "FriendsOfCozyCoMetadata"
       );
@@ -228,11 +247,31 @@ describe("CozyCoFriends contract", () => {
         "A brand new token type",
         "ipfs://image"
       );
-      await cozyCoFriends.setTokenTypeMetadataAddress(10, meta.address);
-      expect(await cozyCoFriends.getTokenTypeMetadataAddress(10)).to.eql([
-        true,
-        meta.address,
-      ]);
+      await cozyCoMembership.setTokenMetadataAddress(10, meta.address);
+      expect(await cozyCoMembership.getTokenMetadataAddress(10)).to.equal(
+        meta.address
+      );
+    });
+
+    it("should set metadata contract for a range of token types", async () => {
+      const Metadata = await ethers.getContractFactory(
+        "FriendsOfCozyCoMetadata"
+      );
+      const meta = await Metadata.deploy(
+        "New Token Type",
+        "A brand new token type",
+        "ipfs://image"
+      );
+      await cozyCoMembership.setTokenMetadataAddressForRange(
+        10,
+        31,
+        meta.address
+      );
+      for (let i = 10; i < 30; i++) {
+        expect(await cozyCoMembership.getTokenMetadataAddress(i)).to.equal(
+          meta.address
+        );
+      }
     });
   });
 });

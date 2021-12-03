@@ -11,7 +11,7 @@ async function main() {
     "FriendsOfCozyCoMetadata"
   );
   const friendsOfCozyCoMetadata = await FriendsOfCozyCoMetadata.deploy(
-    "Friend of Cozy Co.",
+    "Friend of cozy co.",
     "A special card for exclusive access to cozy wares and discounts.",
     "ipfs://QmddGvzRrAvhchqTB2h92UJrR4BXtZWAM2VhDFemwwkxH9",
     {
