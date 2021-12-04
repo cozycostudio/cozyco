@@ -7,7 +7,7 @@ async function main() {
 
   const CozyCoFriends = await ethers.getContractFactory("CozyCoFriends");
   const contract = await CozyCoFriends.deploy({
-    gasLimit: ethers.BigNumber.from(2750000),
+    gasLimit: ethers.BigNumber.from(2000000),
   });
   console.log("CozyCoFriends deployed to:", contract.address);
 }
