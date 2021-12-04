@@ -1,5 +1,12 @@
 import { ethers } from "hardhat";
 
+export const friendsOfCozyCoConstructor = {
+  name: "Friend of cozy co.",
+  description:
+    "A special card for exclusive access to cozy wares and discounts.",
+  image: "ipfs://QmddGvzRrAvhchqTB2h92UJrR4BXtZWAM2VhDFemwwkxH9",
+};
+
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
@@ -9,11 +16,11 @@ async function main() {
     "FriendsOfCozyCoMetadata"
   );
   const contract = await FriendsOfCozyCoMetadata.deploy(
-    "Friend of Cozy Co.",
-    "A special card for exclusive access to cozy wares and discounts.",
-    "ipfs://QmddGvzRrAvhchqTB2h92UJrR4BXtZWAM2VhDFemwwkxH9",
+    friendsOfCozyCoConstructor.name,
+    friendsOfCozyCoConstructor.description,
+    friendsOfCozyCoConstructor.image,
     {
-      gasLimit: ethers.BigNumber.from(885000),
+      gasLimit: ethers.BigNumber.from(910000),
     }
   );
   console.log("FriendsOfCozyCoMetadata deployed to:", contract.address);

@@ -19,71 +19,12 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
-import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IMembershipTokenMetadata.sol";
 
-contract CozyCoMembership is AccessControlEnumerable, Ownable, ERC1155Burnable {
-    bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
-    bytes32 public constant REVOKER_ROLE = keccak256("REVOKER_ROLE");
-
-    mapping(uint256 => address) private _tokenMetadata;
-
-    constructor() ERC1155("") {
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(ISSUER_ROLE, _msgSender());
-        _setupRole(REVOKER_ROLE, _msgSender());
-    }
-
-    function issueMembership(address to, uint256 token) public virtual {
-        require(hasRole(ISSUER_ROLE, _msgSender()), "Must have issuer role");
-        require(
-            _tokenMetadata[token] != address(0),
-            "CozyCoMembership: no metadata"
-        );
-        require(balanceOf(to, token) == 0, "Already has token");
-        _mint(to, token, 1, "");
-    }
-
-    function issueMemberships(address[] memory _members, uint256 token)
-        public
-        virtual
-    {
-        require(hasRole(ISSUER_ROLE, _msgSender()), "Must have issuer role");
-        for (uint256 i = 0; i < _members.length; i++) {
-            issueMembership(_members[i], token);
-        }
-    }
-
-    function revokeMembership(
-        address _address,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) public virtual {
-        require(hasRole(REVOKER_ROLE, _msgSender()), "Must have revoker role");
-        _burnBatch(_address, ids, amounts);
-    }
-
-    function setTokenMetadataAddress(uint256 id, address _address)
-        public
-        onlyOwner
-    {
-        _tokenMetadata[id] = _address;
-    }
-
-    function setTokenMetadataAddressForRange(
-        uint256 startId,
-        uint256 endId,
-        address _address
-    ) public onlyOwner {
-        for (uint256 id = startId; id < endId; id++) {
-            _tokenMetadata[id] = _address;
-        }
-    }
-
-    function getTokenMetadataAddress(uint256 id) public view returns (address) {
-        return _tokenMetadata[id];
-    }
+contract CozyCoMembership is Ownable, ERC1155Burnable {
+    mapping(uint256 => address) private _membershipMetadata;
+    uint256[] private _membershipTypes;
 
     function uri(uint256 id)
         public
@@ -93,19 +34,101 @@ contract CozyCoMembership is AccessControlEnumerable, Ownable, ERC1155Burnable {
         returns (string memory)
     {
         require(
-            _tokenMetadata[id] != address(0),
+            _membershipMetadata[id] != address(0),
             "CozyCoMembership: no metadata"
         );
-        return IMembershipTokenMetadata(_tokenMetadata[id]).getURI(id);
+        return IMembershipTokenMetadata(_membershipMetadata[id]).getURI(id);
+    }
+
+    function issueMembership(address to, uint256 token)
+        public
+        virtual
+        onlyOwner
+    {
+        require(
+            _membershipMetadata[token] != address(0),
+            "CozyCoMembership: no metadata"
+        );
+        require(balanceOf(to, token) == 0, "CozyCoMembership: already member");
+        _mint(to, token, 1, "");
+    }
+
+    function issueMemberships(address[] memory _members, uint256 token)
+        public
+        virtual
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _members.length; i++) {
+            issueMembership(_members[i], token);
+        }
+    }
+
+    function issueCustomMembership(
+        address to,
+        uint256 token,
+        address metadata
+    ) public virtual onlyOwner {
+        require(
+            _membershipMetadata[token] == address(0),
+            "CozyCoMembership: tokenId in use"
+        );
+        require(balanceOf(to, token) == 0, "CozyCoMembership: already member");
+        _membershipMetadata[token] = metadata;
+        _mint(to, token, 1, "");
+    }
+
+    function revokeMembership(
+        address _address,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual onlyOwner {
+        _burnBatch(_address, ids, amounts);
+    }
+
+    function addMembershipMetadataAddress(
+        uint256 membershipId,
+        address _address
+    ) public onlyOwner {
+        require(
+            _membershipMetadata[membershipId] == address(0),
+            "CozyCoMembership: tokenId in use"
+        );
+        _membershipMetadata[membershipId] = _address;
+        _membershipTypes.push(membershipId);
+    }
+
+    function updateMembershipMetadataAddress(
+        uint256 membershipId,
+        address _address
+    ) public onlyOwner {
+        _membershipMetadata[membershipId] = _address;
+    }
+
+    function getMembershipTypes()
+        public
+        view
+        returns (uint256[] memory membershipTypes)
+    {
+        return _membershipTypes;
+    }
+
+    function getMembershipMetadataAddress(uint256 membershipId)
+        public
+        view
+        returns (address)
+    {
+        return _membershipMetadata[membershipId];
     }
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC1155)
+        override(ERC1155)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
+
+    constructor() ERC1155("") {}
 }
