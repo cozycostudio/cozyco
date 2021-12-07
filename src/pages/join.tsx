@@ -72,7 +72,7 @@ function JoinCozyCo() {
             setMintingState(MintingState.READY);
           }
         })
-        .catch((e) => {
+        .catch((e: any) => {
           console.error(e);
         });
     }
@@ -107,7 +107,7 @@ function JoinCozyCo() {
       setMintingState(MintingState.BROADCASTED);
       await tx.wait();
       setMintingState(MintingState.CONFIRMED);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setMintingState(MintingState.ERROR);
     }
