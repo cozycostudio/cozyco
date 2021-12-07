@@ -16,7 +16,3 @@ export const merkleTree = new MerkleTree(friendsOf, keccak256, {
   hashLeaves: true,
   sortPairs: true,
 });
-
-export function membersMerkleRoot() {
-  return merkleTree.getHexRoot();
-}

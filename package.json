@@ -9,9 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@reach/dialog": "^0.16.2",
     "@reach/menu-button": "^0.16.2",
     "@reach/popover": "^0.16.2",
     "@reach/tooltip": "^0.16.2",
+    "@web3-react/abstract-connector": "^6.0.7",
+    "@web3-react/core": "^6.1.9",
+    "@web3-react/injected-connector": "^6.0.7",
+    "@web3-react/walletconnect-connector": "^6.2.4",
     "airtable": "^0.11.1",
     "axios": "^0.24.0",
     "dotenv": "^10.0.0",
@@ -25,7 +30,10 @@
     "react-dom": "17.0.2",
     "styled-components": "^5.3.1",
     "swr": "^1.0.1",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "use-async-effect": "^2.2.3",
+    "web3modal": "^1.9.4",
+    "zustand": "^3.6.7"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

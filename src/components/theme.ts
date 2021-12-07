@@ -13,14 +13,15 @@ export const theme = {
   fontSizes: {
     xs: "0.75rem",
     s: "1rem",
-    m: "1.25rem",
-    l: "1.75rem",
+    m: "1.5rem",
+    l: "2rem",
     xl: "3rem",
   },
   colors: {
     fg: "#1A1F1A",
     bg: "#F6E6D5",
     subdued: "rgba(26, 31, 26, 0.5)",
+    accent: "#F1AA5D",
   },
   spacing: {
     xs: "0.5rem",

@@ -2,9 +2,14 @@ import React from "react";
 import Head from "next/head";
 import type { AppProps } from "next/app";
 import { ThemeProvider } from "styled-components";
-import { theme } from "components/theme";
-import { GlobalStyles } from "components/GlobalStyles";
-import { Footer } from "components/Footer";
+import { Web3ReactProvider } from "@web3-react/core";
+import Web3ReactManager from "../providers/Web3ReactManager";
+import ModalManager from "../providers/ModalManager";
+import MintManager from "../providers/MintManager";
+import getLibrary from "../utils/getLibrary";
+import { theme } from "../components/theme";
+import { GlobalStyles } from "../components/GlobalStyles";
+import { Footer } from "../components/Footer";
 
 export interface DefaultPageProps {
   contractHref: string;
@@ -33,9 +38,17 @@ function App({ Component, pageProps }: AppProps) {
         <meta property="og:url" content="https://cozyco.studio" />
       </Head>
       <ThemeProvider theme={theme}>
-        <GlobalStyles />
-        <Component {...pageProps} />
-        <Footer />
+        <Web3ReactProvider getLibrary={getLibrary}>
+          <Web3ReactManager>
+            <ModalManager>
+              <MintManager>
+                <GlobalStyles />
+                <Component {...pageProps} />
+                <Footer />
+              </MintManager>
+            </ModalManager>
+          </Web3ReactManager>
+        </Web3ReactProvider>
       </ThemeProvider>
     </>
   );
