@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import Head from "next/head";
 import useSWR from "swr";
 import { useWeb3 } from "../hooks/useWeb3";
 import { useModal } from "../hooks/useModal";
@@ -111,10 +112,24 @@ function JoinCozyCo() {
     }
   }, [mintingState, memberList]);
 
-  console.log(mintingState);
+  const metaTitle = "join cozy co.";
+  const metaDescription =
+    "a very limited number of special membership cards are available, join the club!";
 
   return (
     <PageContent>
+      <Head>
+        <title>{metaTitle}</title>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content={metaDescription} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta
+          property="og:image"
+          content="https://cozyco.studio/og-image-join-active.png"
+        />
+        <meta property="og:url" content="https://cozyco.studio/join" />
+      </Head>
       <Header subPageTitle="friend of cozy co." />
       <MaxWidthWrapper as="section">
         {mintingState === MintingState.NOT_CONNECTED && (
