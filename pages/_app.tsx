@@ -22,6 +22,7 @@ function App({ Component, pageProps }: AppProps) {
   const metaTitle = "cozy co.";
   const metaDescription =
     "A place to buy and collect cozy wares for your digital space… coming soon";
+  const metaImage = "https://cozyco.studio/og-image.png";
 
   return (
     <>
@@ -31,11 +32,12 @@ function App({ Component, pageProps }: AppProps) {
         <meta name="description" content={metaDescription} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
-        <meta
-          property="og:image"
-          content="https://cozyco.studio/og-image.png"
-        />
+        <meta property="og:image" content={metaImage} />
         <meta property="og:url" content="https://cozyco.studio" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={metaImage} />
+        <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <ThemeProvider theme={theme}>
         <Web3ReactProvider getLibrary={getLibrary}>

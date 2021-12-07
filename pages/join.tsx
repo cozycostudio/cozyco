@@ -116,6 +116,7 @@ function JoinCozyCo() {
   const metaTitle = "join cozy co.";
   const metaDescription =
     "a very limited number of special membership cards are available, join the club!";
+  const metaImage = "https://cozyco.studio/og-image-join-active.png";
 
   return (
     <PageContent>
@@ -125,11 +126,12 @@ function JoinCozyCo() {
         <meta name="description" content={metaDescription} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
-        <meta
-          property="og:image"
-          content="https://cozyco.studio/og-image-join-active.png"
-        />
+        <meta property="og:image" content={metaImage} />
         <meta property="og:url" content="https://cozyco.studio/join" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={metaImage} />
+        <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <Header subPageTitle="friend of cozy co." />
       <MaxWidthWrapper as="section">
