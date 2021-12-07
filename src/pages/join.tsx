@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import useSWR from "swr";
+import { BigNumber } from "ethers";
 import { useWeb3 } from "../hooks/useWeb3";
 import { useModal } from "../hooks/useModal";
 import { useMint } from "../hooks/useMint";
@@ -63,7 +64,7 @@ function JoinCozyCo() {
       setMintingState(MintingState.NOT_READY);
       writeableContract
         .balanceOf(account, MembershipType.FRIEND_OF)
-        .then((balanceOfFriendsToken) => {
+        .then((balanceOfFriendsToken: BigNumber) => {
           setBalance(balanceOfFriendsToken.toNumber());
           if (balanceOfFriendsToken.toNumber() > 0) {
             setMintingState(MintingState.ALREADY_CLAIMED);
