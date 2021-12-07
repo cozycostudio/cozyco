@@ -22,7 +22,7 @@ describe("CCMFriendsOfMetadata contract", () => {
     );
   });
 
-  it("should set the correct metadata", async function () {
+  it.only("should set the correct metadata", async function () {
     expect(await ccmFriendsOfMetadata.name()).to.equal(
       memberships.friendsOf.name
     );
@@ -99,7 +99,7 @@ describe("CozyCoMembership contract", () => {
     await cozyCoMembership.addMembershipMetadataAddress(1, metadata.address);
   });
 
-  describe("Deployment", () => {
+  describe.only("Deployment", () => {
     it("should set the correct owner", async () => {
       expect(await cozyCoMembership.owner()).to.equal(owner.address);
     });

@@ -47,7 +47,7 @@ async function main() {
     INITIAL_MEMBERSHIP_ID,
     friendsOfCozyCoMetadata.address,
     {
-      gasLimit: ethers.BigNumber.from(30000),
+      gasLimit: ethers.BigNumber.from(47000),
     }
   );
 

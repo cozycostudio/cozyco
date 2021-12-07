@@ -14,6 +14,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "outDir": "dist",
+    "baseUrl": "./"
   },
   "include": ["**/*.ts", "**/*.tsx", "./typechain", "./test"],
   "exclude": ["node_modules"],
