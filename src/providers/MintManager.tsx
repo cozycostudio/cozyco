@@ -10,6 +10,7 @@ interface ContractAddressByChainId {
 }
 
 const cozyCoMembershipContract: ContractAddressByChainId = {
+  "1": "0xbfE56434Ff917d8eB42677d06C0Be2b57EA79F3a",
   "4": "0xed269d608f6ec4adffca4ea8152ee7df66c25e94",
 };
 
