@@ -178,8 +178,9 @@ function JoinCozyCo() {
                 <a href="/s/discord">Discord</a> and your luck may change!
               </Paragraph>
               <Paragraph margin="s 0 0">
-                Note: The initial list required you to have a quilt. This might
-                not be the case for future members.
+                Note: The initial round of memberships were only for people who
+                filled out a form, and had a quilt at the time of a snapshot.
+                These requirements may change in future and be open to everyone.
               </Paragraph>
             </>
           )}
