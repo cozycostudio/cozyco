@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import keccak256 from "keccak256";
-import { merkleTree } from "../../../tokens/cozyco-memberships";
+import { merkleTree } from "../../tokens/cozyco-memberships";
 
 export interface GetMerkleProofResponse {
   proof: string[];
