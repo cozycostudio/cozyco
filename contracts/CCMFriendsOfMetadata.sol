@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-/// @title: Friends of cozy co. metadata
+/// @title: cozy co. membership: "friends of" metadata
 /// @author: The Stitcher AKA samking.eth
 /*            
 
@@ -19,9 +19,9 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Base64.sol";
-import "./IMembershipTokenMetadata.sol";
+import "./IMembershipMetadata.sol";
 
-contract FriendsOfCozyCoMetadata is Ownable, IMembershipTokenMetadata {
+contract CCMFriendsOfMetadata is Ownable, IMembershipMetadata {
     string public name;
     string public description;
     string public imageURI;

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import membershipList from "../../data/membership-list.json";
+import { membersList } from "../../../tokens/cozyco-memberships";
 import { isValidAddress, resolveAddress } from "../../utils/eth";
 
 export interface MemberListCheckResponse {
@@ -16,7 +16,7 @@ const handler = async (
   }
   const resolvedAddress = await resolveAddress(address);
   const isOnList = resolvedAddress
-    ? membershipList.includes(resolvedAddress.toLowerCase())
+    ? membersList.includes(resolvedAddress.toLowerCase())
     : false;
 
   res.json({ isOnList });
