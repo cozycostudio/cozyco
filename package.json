@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "compile-contracts": "npx hardhat compile"
   },
   "dependencies": {
     "@reach/dialog": "^0.16.2",
