@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cozy seasons greetings</title>
+    <style>
+      *,
+      :after,
+      :before {
+        box-sizing: border-box;
+      }
+      :root {
+        --transition-dur: 800ms;
+        --transition-easing: cubic-bezier(0.4, 0.01, 0.2, 1);
+        --border-color: #1a1f1a;
+        --background-color: #fcf8f2;
+        --card-color: #f6e6d5;
+        --card-size: 80vh;
+        --card-padding: 8vh;
+        --font-size: 2.2vh;
+        --greeting-size: 3.6vh;
+        --border-radius: 2vh;
+        --border-width: 0.8vh;
+      }
+      @media (orientation: portrait) {
+        :root {
+          --card-size: 80vw;
+          --card-padding: 8vw;
+          --font-size: 2.2vw;
+          --greeting-size: 3.6vw;
+          --border-radius: 2vw;
+          --border-width: 0.8vw;
+        }
+      }
+      #container,
+      body,
+      html {
+        background: var(--background-color);
+        color: var(--border-color);
+        font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+          Liberation Mono, monospace;
+        font-size: var(--font-size);
+        height: 100%;
+        line-height: 1.5;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+      h2 {
+        font-size: var(--greeting-size);
+        font-weight: 400;
+        text-align: center;
+      }
+      h2,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: underline;
+      }
+      svg {
+        max-width: 100%;
+      }
+      #container {
+        align-items: center;
+        display: grid;
+        justify-content: center;
+      }
+      #card {
+        background: var(--border-color);
+        border-radius: calc(var(--border-radius) * 1.5);
+        box-shadow: calc(var(--border-width) * 2) calc(var(--border-width) * 2)
+          0 var(--border-color);
+        cursor: pointer;
+        height: var(--card-size);
+        transform: perspective(2000px);
+        transform-style: preserve-3d;
+        transition: transform var(--transition-dur) var(--transition-easing),
+          box-shadow var(--transition-dur) var(--transition-easing),
+          border-radius var(--transition-dur) var(--transition-easing);
+        width: var(--card-size);
+      }
+      #card.open {
+        border-radius: calc(var(--border-radius) * 2);
+        box-shadow: calc(var(--border-width) * 3) calc(var(--border-width) * 3)
+          0 var(--border-color);
+        transform: perspective(2000px) rotate(1deg);
+      }
+      #cover {
+        height: 100%;
+        position: relative;
+        transform-origin: left;
+        transform-style: preserve-3d;
+        transition: transform var(--transition-dur) var(--transition-easing);
+        width: 100%;
+        z-index: 1;
+      }
+      #card.open #cover {
+        transform: rotateY(-100deg) translate(calc(var(--border-width) * -1));
+      }
+      #cover svg {
+        position: relative;
+        z-index: 1;
+      }
+      #cover-back,
+      #cover-front {
+        backface-visibility: hidden;
+        background: var(--card-color);
+        height: 100%;
+        position: absolute;
+        width: 100%;
+        z-index: 0;
+      }
+      #cover-back {
+        transform: rotateY(180deg);
+        z-index: 1;
+      }
+      #inside {
+        align-items: center;
+        background-color: #fff;
+        bottom: 0;
+        display: grid;
+        grid-template-rows: max-content 1fr max-content;
+        left: 0;
+        padding: var(--card-padding);
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 0;
+      }
+      #cover-back,
+      #cover-front,
+      #inside {
+        border: var(--border-width) solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="card">
+        <div id="cover">
+          <div id="cover-front"></div>
+          <div id="cover-back"></div>
+        </div>
+        <div id="inside">
+          <p id="to"></p>
+          <h2 id="greeting"></h2>
+          <p id="from"></p>
+        </div>
+      </div>
+    </div>
+    <script type="module">
+      function n(n) {
+        return n && n.__esModule ? n.default : n;
+      }
+      var e =
+          "undefined" != typeof globalThis
+            ? globalThis
+            : "undefined" != typeof self
+            ? self
+            : "undefined" != typeof window
+            ? window
+            : "undefined" != typeof global
+            ? global
+            : {},
+        t = {},
+        r = [],
+        o = void 0 === e ? window : e,
+        u = Math.pow(256, 6),
+        a = Math.pow(2, 52),
+        i = 2 * a,
+        l = Math.random;
+      function c(n) {
+        var e,
+          t = n.length,
+          r = this,
+          o = 0,
+          u = (r.i = r.j = 0),
+          a = (r.S = []);
+        for (t || (n = [t++]); o < 256; ) a[o] = o++;
+        for (o = 0; o < 256; o++)
+          (a[o] = a[(u = 255 & (u + n[o % t] + (e = a[o])))]), (a[u] = e);
+        (r.g = function (n) {
+          for (var e, t = 0, o = r.i, u = r.j, a = r.S; n--; )
+            (e = a[(o = 255 & (o + 1))]),
+              (t =
+                256 * t +
+                a[255 & ((a[o] = a[(u = 255 & (u + e))]) + (a[u] = e))]);
+          return (r.i = o), (r.j = u), t;
+        })(256);
+      }
+      function f(n, e) {
+        var t,
+          r = [],
+          o = (typeof n)[0];
+        if (e && "o" == o)
+          for (t in n)
+            try {
+              r.push(f(n[t], e - 1));
+            } catch (n) {}
+        return r.length ? r : "s" == o ? n : n + "\0";
+      }
+      function s(n, e) {
+        for (var t, r = n + "", o = 0; o < r.length; )
+          e[255 & o] = 255 & ((t ^= 19 * e[255 & o]) + r.charCodeAt(o++));
+        return h(e);
+      }
+      function d(n) {
+        try {
+          return o.crypto.getRandomValues((n = new Uint8Array(256))), h(n);
+        } catch (n) {
+          return [
+            +new Date(),
+            o,
+            o.navigator && o.navigator.plugins,
+            o.screen,
+            h(r),
+          ];
+        }
+      }
+      function h(n) {
+        return String.fromCharCode.apply(0, n);
+      }
+      function g(n) {
+        return [n.x, n.y, n.z];
+      }
+      function v(n, e, t = 0) {
+        return { x: n, y: e, z: t };
+      }
+      function p(n, e) {
+        return (r = e), v((t = n).x + r.x, t.y + r.y, t.z + r.z);
+        var t, r;
+      }
+      function y(n, e) {
+        return n.map((n) =>
+          (function (n, e) {
+            return n.map((n) => p(n, e));
+          })(n, e)
+        );
+      }
+      function m(n, e, t) {
+        return n + (e - n) * t;
+      }
+      function b(n, e, t) {
+        return v(m(n.x, e.x, t), m(n.y, e.y, t), m(n.z, e.y, t));
+      }
+      function w(n, e, t, r, o, u = !1) {
+        return u
+          ? ((a = m(r, o, (n - e) / (t - e))),
+            (l = o),
+            a < (i = r) ? i : a > l ? l : a)
+          : m(r, o, (n - e) / (t - e));
+        var a, i, l;
+      }
+      function x(n) {
+        var e = [];
+        return (
+          n.forEach(function (n, t) {
+            var r = 0 === t ? "M" : "L",
+              o = n[0].toString(),
+              u = n[1].toString();
+            e.push(`${r}${o} ${u}`);
+          }),
+          e.join(" ")
+        );
+      }
+      function M(n) {
+        return n
+          .filter(Boolean)
+          .map((n) => `${n[0]}="${n[1]}"`)
+          .join(" ");
+      }
+      ((t = function (n, e) {
+        if (e && !0 === e.global)
+          return (
+            (e.global = !1),
+            (Math.random = t(n, e)),
+            (e.global = !0),
+            Math.random
+          );
+        var o = (e && e.entropy) || !1,
+          l = [],
+          g = (s(f(o ? [n, h(r)] : 0 in arguments ? n : d(), 3), l), new c(l));
+        return (
+          s(h(g.S), r),
+          function () {
+            for (var n = g.g(6), e = u, t = 0; n < a; )
+              (n = 256 * (n + t)), (e *= 256), (t = g.g(1));
+            for (; n >= i; ) (n /= 2), (e /= 2), (t >>>= 1);
+            return (n + t) / e;
+          }
+        );
+      }).resetGlobal = function () {
+        Math.random = l;
+      }),
+        s(Math.random(), r);
+      const S = window.location.search,
+        $ = new URLSearchParams(S),
+        k = $.get("s"),
+        C = $.get("f"),
+        L = $.get("t"),
+        j = (function (e) {
+          const r = (function (e) {
+              let r = Math.random,
+                o = e || a();
+              function u(e) {
+                (r = n(t)(e)), (o = e);
+              }
+              function a() {
+                const n = 1e9;
+                return String(Math.floor(9e9 * Math.random() + n));
+              }
+              function i(n, e) {
+                return n || 0 === n
+                  ? e || 0 === e
+                    ? (n > e && ([n, e] = [e, n]), n + r() * (e - n))
+                    : r() * n
+                  : r();
+              }
+              return (
+                u(o),
+                {
+                  seed: e,
+                  setSeed: u,
+                  getSeed: function () {
+                    return o;
+                  },
+                  getRandomSeed: a,
+                  value: i,
+                  valueInt: function (n, e) {
+                    return ~~i(n, e);
+                  },
+                  boolean: function () {
+                    return i() > 0.5;
+                  },
+                }
+              );
+            })(e),
+            o = 500,
+            u = 500,
+            a = [
+              [2, 2, 10],
+              [3, 2, 10],
+              [3, 3, 5],
+              [4, 3, 5],
+              [4, 4, 5],
+              [5, 5, 5],
+            ],
+            [i, l, c] = a[r.valueInt(0, a.length - 1)],
+            f = 400 / i - c * i - 1,
+            s = 400 / l - c * l - 1;
+          function d(n, e, t) {
+            const o = [],
+              u = [],
+              a = r.value(0.5 * n, n),
+              i = r.value(0.5 * e, e),
+              l = n / 2,
+              c = r.value(2, 20),
+              f = r.valueInt(30, 40),
+              s = r.boolean() ? 120 - c : 100 + c,
+              d = a * r.value(0.2, 0.5),
+              h = a / r.value(20, 100),
+              g = r.valueInt(2, 5),
+              p = r.value(0, 0.02 * i);
+            for (let n = 0; n < g; n++) {
+              const e = n * t,
+                u = r.value(-3 * t, 3 * t);
+              o.push([v(l + e / 3, p), v(l + e + u, r.value(0.98 * i, i))]);
+            }
+            const m = r.value(0.05 * i, 0.3 * i),
+              x = (i - m) / f;
+            function M(n, e) {
+              const t = n.x,
+                o = n.y,
+                a = e.x,
+                i = (r.value(100, 110) * n.y) / s,
+                l = r.valueInt(5, 10);
+              for (let n = 0; n < l; n++) {
+                const n = r.value(0, 0.5),
+                  e = r.value(0.1, 0.3),
+                  l = v(t, o),
+                  c = v(a, i),
+                  f = b(l, c, n),
+                  s = b(l, c, n + e),
+                  g = w(Math.hypot(a - t, i - o), h, d, 1, 2),
+                  p = f.x,
+                  y = f.y,
+                  m = s.x,
+                  x = s.y + r.value(-0.5 * g, g);
+                u.push([v(p, y), v(m, x)]);
+              }
+            }
+            for (let n = 0; n < f; n++) {
+              const e = w(n, 0, f - 1, d, h),
+                t = i - m - x * n;
+              M(v(l, t), v(l - e, t)), M(v(l, t), v(l + e, t));
+            }
+            return y([...o, ...u], v(0, (e - i) / 2));
+          }
+          let h = [];
+          for (let n = 0; n < l; n++) {
+            const e = l <= 1 ? 0.5 : n / (l - 1);
+            for (let n = 0; n < i; n++) {
+              const t = i <= 1 ? 0.5 : n / (i - 1),
+                r = f / 2,
+                a = s / 2,
+                l = y(
+                  d(f, s, 1),
+                  v(m(r + 50, o - r - 50, t) - r, m(a + 50, u - a - 50, e) - a)
+                );
+              h.push(...l);
+            }
+          }
+          return `\n  <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">\n    <rect width="500" height="500" fill="#F6E6D5" />\n    ${(function (
+            n,
+            e = {}
+          ) {
+            const t = n.map((n) => n.map(g)).map(x),
+              r = e.fillColor || "none",
+              o = e.strokeColor || "black",
+              u = e.lineWidth || "1",
+              a = e.lineJoin,
+              i = e.lineCap,
+              l = t.map((n) => `<path ${M([["d", n]])} />`).join("");
+            return `<g ${M([
+              ["fill", r],
+              ["stroke", o],
+              ["stroke-width", `${u}px`],
+              !!a && ["stroke-linejoin", a],
+              !!i && ["stroke-linecap", i],
+            ])}>${l}</g>`;
+          })(h, {
+            strokeColor: "#1A1F1A",
+            lineCap: "round",
+            lineWidth: "" + 2 / l,
+          })}\n  </svg>\n  `;
+        })(k);
+      let z = `dear<br />${L || "..."}`,
+        q = `from<br />${C || "..."}<br />xoxo`,
+        T = "season's greetings,<br />and a happy new year!";
+      "0x0000000000000000000000000000000000000000" === C &&
+        (q =
+          'from your friends at <a href="https://cozyco.studio">cozyco.eth</a><br />xoxo'),
+        "0x0000000000000000000000000000000000000000" === L &&
+          ((z = ""),
+          (T = "bah humbug!<br />u lil grinch"),
+          (q = C ? `burned by<br />${C}` : "someone burned this card :(")),
+        (document.querySelector("#from").innerHTML = q),
+        (document.querySelector("#to").innerHTML = z),
+        (document.querySelector("#greeting").innerHTML = T),
+        (document.querySelector("#cover-front").innerHTML = j),
+        document.querySelector("#card").addEventListener("click", () => {
+          document.querySelector("#card").classList.toggle("open");
+        });
+    </script>
+  </body>
+</html>
