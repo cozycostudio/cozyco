@@ -136,12 +136,12 @@ export function makeCoverArt(seed: string) {
     }
   }
 
-  return `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${width}" height="${height}" fill="${background}" />
-    ${polylinesToSVG(polylines, {
+  return `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background}" />${polylinesToSVG(
+    polylines,
+    {
       strokeColor: foreground,
       lineCap: "round",
       lineWidth: `${2 / rows}`,
-    })}
-  </svg>`;
+    }
+  )}</svg>`;
 }
