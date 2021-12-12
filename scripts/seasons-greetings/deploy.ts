@@ -11,7 +11,8 @@ async function main() {
   const contract = await CozyCoSeasonsGreetings.deploy(
     "https://cozyco.studio/api/seasons-greetings/image",
     "https://cozyco.studio/api/seasons-greetings/animation_url",
-    "0xbfE56434Ff917d8eB42677d06C0Be2b57EA79F3a",
+    "0xed269d608f6ec4adffca4ea8152ee7df66c25e94", // rinkeby
+    // "0xbfE56434Ff917d8eB42677d06C0Be2b57EA79F3a", // mainnet
     {
       gasLimit: ethers.BigNumber.from(2570000),
     }

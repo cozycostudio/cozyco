@@ -4,6 +4,14 @@ module.exports = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, options) => {
+    config.module.rules.push({
+      test: /\.html$/i,
+      loader: "html-loader",
+    });
+
+    return config;
+  },
   async redirects() {
     return [
       {
