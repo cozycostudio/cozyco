@@ -12,6 +12,28 @@ module.exports = {
 
     return config;
   },
+  async headers() {
+    return [
+      {
+        source: "/api/seasons-greetings/image",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "image/svg+xml",
+          },
+        ],
+      },
+      {
+        source: "/api/seasons-greetings/animation_url",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "text/html",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {
