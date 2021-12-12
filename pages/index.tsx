@@ -24,7 +24,7 @@ function Index() {
           exclusive access and discounts on cozy wares.
         </Paragraph>
 
-        <Link href="/join">
+        <Link href="/join" passHref>
           <LinkButton margin="m 0 0">join cozy co.</LinkButton>
         </Link>
       </MaxWidthWrapper>

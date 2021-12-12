@@ -1,7 +1,14 @@
-import { Path, vector, Vector, translatePaths } from "utils/geometry";
-import { lerpVector, map, lerp } from "utils/math";
-import { createRandom } from "utils/random";
-import { polylinesToSVG } from "utils/svg";
+import {
+  createRandom,
+  lerpVector,
+  lerp,
+  map,
+  Path,
+  polylinesToSVG,
+  translatePaths,
+  vector,
+  Vector,
+} from "./utils";
 
 export function makeCoverArt(seed: string) {
   const rng = createRandom(seed);
