@@ -13,37 +13,42 @@ import {
 export function makeCoverArt(seed: string) {
   const rng = createRandom(seed);
 
-  const background = "#F6E6D5";
-  const foreground = "#1A1F1A";
-
   const width = 500;
   const height = 500;
 
-  const marginX = width * 0.1;
-  const marginY = height * 0.1;
+  const themes = [
+    ["#F6E6D5", "#1A1F1A"],
+    ["#656D49", "#1A1F1A"],
+    ["#DC656C", "#322238"],
+    ["#719FB0", "#322238"],
+  ];
+
+  const [background, foreground] = themes[rng.valueInt(0, themes.length)];
 
   const layouts = [
-    [2, 2, 10],
-    [3, 2, 10],
-    [3, 3, 5],
-    [4, 3, 5],
-    [4, 4, 5],
-    [5, 5, 5],
+    [2, 1, 2, 50, 50],
+    [2, 2, 10, 50, 50],
+    [3, 2, 10, 50, 50],
+    [3, 3, 5, 50, 50],
+    [4, 3, 5, 50, 50],
+    [4, 4, 5, 50, 50],
+    [5, 5, 5, 50, 50],
   ];
-  const [columns, rows, gap] = layouts[rng.valueInt(0, layouts.length - 1)];
+  const [columns, rows, gap, marginX, marginY] =
+    layouts[rng.valueInt(0, layouts.length - 1)];
 
   const treeW = (width - marginX * 2) / columns - gap * columns - 1;
   const treeH = (height - marginY * 2) / rows - gap * rows - 1;
 
-  function makeTree(w: number, h: number, lineWidth: number): Path[] {
+  function makeTree(w: number, h: number): Path[] {
     const trunks: Path[] = [];
     const branches: Path[] = [];
 
-    const treeWidth = rng.value(w * 0.5, w);
-    const treeHeight = rng.value(h * 0.5, h);
+    const treeWidth = rng.value(w * 0.4, w);
+    const treeHeight = rng.value(h * 0.4, h);
     const cx = w / 2;
     const rotation = rng.value(2, 20);
-    const branchVerticalLevels = rng.valueInt(30, 40);
+    const branchVerticalLevels = rng.valueInt(h * 0.24, h * 0.48);
     const branchUpwardsRotation = rng.boolean()
       ? 120 - rotation
       : 100 + rotation;
@@ -54,11 +59,11 @@ export function makeCoverArt(seed: string) {
     const trunkThickness = rng.valueInt(2, 5);
     const trunkStartY = rng.value(0, treeHeight * 0.02);
     for (let i = 0; i < trunkThickness; i++) {
-      const offset = i * lineWidth;
-      const xAngle = rng.value(lineWidth * 3 * -1, lineWidth * 3);
+      const offset = i;
+      const xAngle = rng.value(-3, 3);
       trunks.push([
         vector(cx + offset / 3, trunkStartY),
-        vector(cx + offset + xAngle, rng.value(treeHeight * 0.98, treeHeight)),
+        vector(cx + offset + xAngle, rng.value(treeHeight * 0.96, treeHeight)),
       ]);
     }
 
@@ -121,7 +126,7 @@ export function makeCoverArt(seed: string) {
     const rIndex = rows <= 1 ? 0.5 : row / (rows - 1);
     for (let column = 0; column < columns; column++) {
       const cIndex = columns <= 1 ? 0.5 : column / (columns - 1);
-      const tree = makeTree(treeW, treeH, 1);
+      const tree = makeTree(treeW, treeH);
       const treeCx = treeW / 2;
       const treeCy = treeH / 2;
 

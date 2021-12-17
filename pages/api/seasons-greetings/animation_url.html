@@ -301,8 +301,8 @@
         s(Math.random(), r);
       const S = window.location.search,
         $ = new URLSearchParams(S),
-        k = $.get("s"),
-        C = $.get("f"),
+        C = $.get("s"),
+        k = $.get("f"),
         L = $.get("t"),
         j = (function (e) {
           const r = (function (e) {
@@ -344,79 +344,87 @@
             o = 500,
             u = 500,
             a = [
-              [2, 2, 10],
-              [3, 2, 10],
-              [3, 3, 5],
-              [4, 3, 5],
-              [4, 4, 5],
-              [5, 5, 5],
+              ["#F6E6D5", "#1A1F1A"],
+              ["#656D49", "#1A1F1A"],
+              ["#DC656C", "#322238"],
+              ["#719FB0", "#322238"],
             ],
-            [i, l, c] = a[r.valueInt(0, a.length - 1)],
-            f = 400 / i - c * i - 1,
-            s = 400 / l - c * l - 1;
-          function d(n, e, t) {
-            const o = [],
-              u = [],
-              a = r.value(0.5 * n, n),
-              i = r.value(0.5 * e, e),
-              l = n / 2,
-              c = r.value(2, 20),
-              f = r.valueInt(30, 40),
-              s = r.boolean() ? 120 - c : 100 + c,
-              d = a * r.value(0.2, 0.5),
-              h = a / r.value(20, 100),
-              g = r.valueInt(2, 5),
-              p = r.value(0, 0.02 * i);
-            for (let n = 0; n < g; n++) {
-              const e = n * t,
-                u = r.value(-3 * t, 3 * t);
-              o.push([v(l + e / 3, p), v(l + e + u, r.value(0.98 * i, i))]);
+            [i, l] = a[r.valueInt(0, a.length)],
+            c = [
+              [2, 1, 2, 50, 50],
+              [2, 2, 10, 50, 50],
+              [3, 2, 10, 50, 50],
+              [3, 3, 5, 50, 50],
+              [4, 3, 5, 50, 50],
+              [4, 4, 5, 50, 50],
+              [5, 5, 5, 50, 50],
+            ],
+            [f, s, d, h, p] = c[r.valueInt(0, c.length - 1)],
+            S = (o - 2 * h) / f - d * f - 1,
+            $ = (u - 2 * p) / s - d * s - 1;
+          function C(n, e) {
+            const t = [],
+              o = [],
+              u = r.value(0.4 * n, n),
+              a = r.value(0.4 * e, e),
+              i = n / 2,
+              l = r.value(2, 20),
+              c = r.valueInt(0.24 * e, 0.48 * e),
+              f = r.boolean() ? 120 - l : 100 + l,
+              s = u * r.value(0.2, 0.5),
+              d = u / r.value(20, 100),
+              h = r.valueInt(2, 5),
+              g = r.value(0, 0.02 * a);
+            for (let n = 0; n < h; n++) {
+              const e = n,
+                o = r.value(-3, 3);
+              t.push([v(i + e / 3, g), v(i + e + o, r.value(0.96 * a, a))]);
             }
-            const m = r.value(0.05 * i, 0.3 * i),
-              x = (i - m) / f;
-            function M(n, e) {
+            const p = r.value(0.05 * a, 0.3 * a),
+              m = (a - p) / c;
+            function x(n, e) {
               const t = n.x,
-                o = n.y,
+                u = n.y,
                 a = e.x,
-                i = (r.value(100, 110) * n.y) / s,
+                i = (r.value(100, 110) * n.y) / f,
                 l = r.valueInt(5, 10);
               for (let n = 0; n < l; n++) {
                 const n = r.value(0, 0.5),
                   e = r.value(0.1, 0.3),
-                  l = v(t, o),
+                  l = v(t, u),
                   c = v(a, i),
                   f = b(l, c, n),
-                  s = b(l, c, n + e),
-                  g = w(Math.hypot(a - t, i - o), h, d, 1, 2),
+                  h = b(l, c, n + e),
+                  g = w(Math.hypot(a - t, i - u), d, s, 1, 2),
                   p = f.x,
                   y = f.y,
-                  m = s.x,
-                  x = s.y + r.value(-0.5 * g, g);
-                u.push([v(p, y), v(m, x)]);
+                  m = h.x,
+                  x = h.y + r.value(-0.5 * g, g);
+                o.push([v(p, y), v(m, x)]);
               }
             }
+            for (let n = 0; n < c; n++) {
+              const e = w(n, 0, c - 1, s, d),
+                t = a - p - m * n;
+              x(v(i, t), v(i - e, t)), x(v(i, t), v(i + e, t));
+            }
+            return y([...t, ...o], v(0, (e - a) / 2));
+          }
+          let k = [];
+          for (let n = 0; n < s; n++) {
+            const e = s <= 1 ? 0.5 : n / (s - 1);
             for (let n = 0; n < f; n++) {
-              const e = w(n, 0, f - 1, d, h),
-                t = i - m - x * n;
-              M(v(l, t), v(l - e, t)), M(v(l, t), v(l + e, t));
-            }
-            return y([...o, ...u], v(0, (e - i) / 2));
-          }
-          let h = [];
-          for (let n = 0; n < l; n++) {
-            const e = l <= 1 ? 0.5 : n / (l - 1);
-            for (let n = 0; n < i; n++) {
-              const t = i <= 1 ? 0.5 : n / (i - 1),
-                r = f / 2,
-                a = s / 2,
-                l = y(
-                  d(f, s, 1),
-                  v(m(r + 50, o - r - 50, t) - r, m(a + 50, u - a - 50, e) - a)
+              const t = f <= 1 ? 0.5 : n / (f - 1),
+                r = S / 2,
+                a = $ / 2,
+                i = y(
+                  C(S, $),
+                  v(m(r + h, o - r - h, t) - r, m(a + p, u - a - p, e) - a)
                 );
-              h.push(...l);
+              k.push(...i);
             }
           }
-          return `\n  <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">\n    <rect width="500" height="500" fill="#F6E6D5" />\n    ${(function (
+          return `<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><rect width="500" height="500" fill="${i}" />${(function (
             n,
             e = {}
           ) {
@@ -434,25 +442,25 @@
               !!a && ["stroke-linejoin", a],
               !!i && ["stroke-linecap", i],
             ])}>${l}</g>`;
-          })(h, {
-            strokeColor: "#1A1F1A",
+          })(k, {
+            strokeColor: l,
             lineCap: "round",
-            lineWidth: "" + 2 / l,
-          })}\n  </svg>\n  `;
-        })(k);
+            lineWidth: "" + 2 / s,
+          })}</svg>`;
+        })(C);
       let z = `dear<br />${L || "..."}`,
-        q = `from<br />${C || "..."}<br />xoxo`,
-        T = "season's greetings,<br />and a happy new year!";
-      "0x0000000000000000000000000000000000000000" === C &&
+        q = `from<br />${k || "..."}<br />xoxo`,
+        A = "season's greetings,<br />and a happy new year!";
+      "0x0000000000000000000000000000000000000000" === k &&
         (q =
           'from your friends at <a href="https://cozyco.studio">cozyco.eth</a><br />xoxo'),
         "0x0000000000000000000000000000000000000000" === L &&
           ((z = ""),
-          (T = "bah humbug!<br />u lil grinch"),
-          (q = C ? `burned by<br />${C}` : "someone burned this card :(")),
+          (A = "bah humbug!<br />u lil grinch"),
+          (q = k ? `burned by<br />${k}` : "someone burned this card :(")),
         (document.querySelector("#from").innerHTML = q),
         (document.querySelector("#to").innerHTML = z),
-        (document.querySelector("#greeting").innerHTML = T),
+        (document.querySelector("#greeting").innerHTML = A),
         (document.querySelector("#cover-front").innerHTML = j),
         document.querySelector("#card").addEventListener("click", () => {
           document.querySelector("#card").classList.toggle("open");
