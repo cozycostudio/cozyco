@@ -19,8 +19,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./Base64.sol";
-import "./ICozyCoMembership.sol";
+import "../utils/Base64.sol";
+import "../membership/ICozyCoMembership.sol";
 
 contract CozyCoSeasonsGreetings is ERC721, Ownable {
     uint256 public constant PRICE = 0.005 ether;

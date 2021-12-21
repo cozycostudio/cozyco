@@ -18,7 +18,7 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./Base64.sol";
+import "../utils/Base64.sol";
 import "./IMembershipMetadata.sol";
 
 contract CCMFriendsOfMetadata is Ownable, IMembershipMetadata {
