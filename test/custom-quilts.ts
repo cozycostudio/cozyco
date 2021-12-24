@@ -2,7 +2,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
-import { map } from "underscore";
 
 interface Token {
   price: number;
@@ -29,18 +28,18 @@ const tokenBundles: TokenBundleRecord = {
   11: { price: 20, maxQuantity: 10, packSize: 10, tokenIds: [3, 4, 5] },
 };
 
-function getIds(type: "singles" | "packs"): number[] {
-  const data = type === "packs" ? tokenBundles : tokens;
+function getIds(type: "patch" | "bundle"): number[] {
+  const data = type === "bundle" ? tokenBundles : tokens;
   return Object.keys(data).map((i) => Number(i));
 }
 
-function getPrices(type: "singles" | "packs"): number[] {
-  const data = type === "packs" ? tokenBundles : tokens;
+function getPrices(type: "patch" | "bundle"): number[] {
+  const data = type === "bundle" ? tokenBundles : tokens;
   return Object.entries(data).map(([_, { price }]) => price);
 }
 
-function getQuantities(type: "singles" | "packs"): number[] {
-  const data = type === "packs" ? tokenBundles : tokens;
+function getQuantities(type: "patch" | "bundle"): number[] {
+  const data = type === "bundle" ? tokenBundles : tokens;
   return Object.entries(data).map(([_, { maxQuantity }]) => maxQuantity);
 }
 
@@ -53,19 +52,19 @@ function getPackTokenIds(): number[][] {
 }
 
 function getTotalPriceForPurchase(
-  type: "singles" | "packs",
+  type: "patch" | "bundle",
   ids: number[],
   amounts: number[]
 ) {
-  const data = type === "packs" ? tokenBundles : tokens;
+  const data = type === "bundle" ? tokenBundles : tokens;
   return ids.reduce((sum: number, id, index) => {
     const price = amounts[index] * data[id].price;
     return sum + price;
   }, 0);
 }
 
-function getMetadataIndexes(type: "singles" | "packs") {
-  const data = type === "packs" ? tokenBundles : tokens;
+function getMetadataIndexes(type: "patch" | "bundle") {
+  const data = type === "bundle" ? tokenBundles : tokens;
   return Object.keys(data).map((_, idx) => idx);
 }
 
@@ -107,11 +106,11 @@ describe("PatchesStorefront contract", () => {
   describe("Tokens", () => {
     beforeEach(async () => {
       await contract.setTokens(
-        getIds("singles"),
+        getIds("patch"),
         metadata.address,
-        getMetadataIndexes("singles"),
-        getPrices("singles"),
-        getQuantities("singles")
+        getMetadataIndexes("patch"),
+        getPrices("patch"),
+        getQuantities("patch")
       );
     });
 
@@ -136,7 +135,7 @@ describe("PatchesStorefront contract", () => {
         tokens[2].maxQuantity,
         tokens[3].maxQuantity,
       ];
-      const totalPrice = getTotalPriceForPurchase("singles", ids, amounts);
+      const totalPrice = getTotalPriceForPurchase("patch", ids, amounts);
       expect(
         await contract.purchaseTokens(ids, amounts, {
           value: totalPrice,
@@ -169,57 +168,55 @@ describe("PatchesStorefront contract", () => {
         tokens[2].maxQuantity,
         tokens[3].maxQuantity,
       ];
-      const totalPrice = getTotalPriceForPurchase("singles", ids, amounts);
+      const totalPrice = getTotalPriceForPurchase("patch", ids, amounts);
       expect(
         contract.purchaseTokens(ids, amounts, { value: totalPrice })
       ).to.be.revertedWith("out of stock");
     });
   });
 
-  describe("Token packs", () => {
+  describe("Token bundle", () => {
     beforeEach(async () => {
       await contract.setTokenBundles(
-        getIds("packs"),
+        getIds("bundle"),
         metadata.address,
-        getMetadataIndexes("packs"),
-        getPrices("packs"),
+        getMetadataIndexes("bundle"),
+        getPrices("bundle"),
         getPackSizes(),
-        getQuantities("packs"),
+        getQuantities("bundle"),
         getPackTokenIds()
       );
     });
 
-    it("should add new token packs", async () => {
-      expect(await contract.getTokenBundleMetadataAddress(10)).to.equal(
+    it("should add new token bundle", async () => {
+      expect(await contract.getTokenMetadataAddress(10)).to.equal(
         metadata.address
       );
-      expect(await contract.getTokenBundlePrice(10)).to.equal(
-        tokenBundles[10].price
-      );
-      expect(await contract.getTokenBundlePrice(11)).to.equal(
-        tokenBundles[11].price
-      );
-      expect(await contract.getTokenBundleMaxQuantity(10)).to.equal(
+      expect(await contract.getTokenPrice(10)).to.equal(tokenBundles[10].price);
+      expect(await contract.getTokenPrice(11)).to.equal(tokenBundles[11].price);
+      expect(await contract.getTokenMaxQuantity(10)).to.equal(
         tokenBundles[10].maxQuantity
       );
-      expect(await contract.getTokenBundleMaxQuantity(11)).to.equal(
+      expect(await contract.getTokenMaxQuantity(11)).to.equal(
         tokenBundles[11].maxQuantity
+      );
+      expect(await contract.getTokenBundleSize(10)).to.equal(
+        tokenBundles[10].packSize
+      );
+      expect(await contract.getTokenBundleSize(11)).to.equal(
+        tokenBundles[11].packSize
       );
     });
 
-    it("should allow purchasing of token packs", async () => {
-      const tokenBundleIds = [10, 11];
+    it("should allow purchasing of token bundles", async () => {
+      const tokenIds = [10, 11];
       const amounts = [
         tokenBundles[10].maxQuantity,
         tokenBundles[11].maxQuantity,
       ];
-      const totalPrice = getTotalPriceForPurchase(
-        "packs",
-        tokenBundleIds,
-        amounts
-      );
+      const totalPrice = getTotalPriceForPurchase("bundle", tokenIds, amounts);
       expect(
-        await contract.purchaseTokenBundles(tokenBundleIds, amounts, {
+        await contract.purchaseTokens(tokenIds, amounts, {
           value: totalPrice,
         })
       )
@@ -228,13 +225,13 @@ describe("PatchesStorefront contract", () => {
           owner.address,
           ethers.constants.AddressZero,
           owner.address,
-          tokenBundleIds,
+          tokenIds,
           amounts
         );
       expect(
         await contract.balanceOfBatch(
-          tokenBundleIds.map((_) => owner.address),
-          tokenBundleIds
+          tokenIds.map((_) => owner.address),
+          tokenIds
         )
       ).to.eql([
         BigNumber.from(tokenBundles[10].maxQuantity),
@@ -242,19 +239,15 @@ describe("PatchesStorefront contract", () => {
       ]);
     });
 
-    it("should allow opening token packs", async () => {
-      const tokenBundleIds = [10, 11];
+    it("should allow opening token bundle", async () => {
+      const tokenIds = [10, 11];
       const amounts = [3, 3];
-      const totalPrice = getTotalPriceForPurchase(
-        "packs",
-        tokenBundleIds,
-        amounts
-      );
-      await contract.purchaseTokenBundles(tokenBundleIds, amounts, {
+      const totalPrice = getTotalPriceForPurchase("bundle", tokenIds, amounts);
+      await contract.purchaseTokens(tokenIds, amounts, {
         value: totalPrice,
       });
 
-      await contract.openTokenBundles(tokenBundleIds, amounts);
+      await contract.openTokenBundles(tokenIds, amounts);
       expect(true).to.be.true;
       console.log(await contract.balanceOf(owner.address, 1));
       console.log(await contract.balanceOf(owner.address, 2));
@@ -308,7 +301,7 @@ describe("PatchesBlankData contract", () => {
   });
 });
 
-describe.only("CustomQuilts contract", () => {
+describe("CustomQuilts contract", () => {
   let contract: Contract;
   let storefront: Contract;
   let owner: SignerWithAddress;
@@ -338,11 +331,11 @@ describe.only("CustomQuilts contract", () => {
     await storefront.setMemberOpenState(true);
     await storefront.setPublicOpenState(true);
     await storefront.setTokens(
-      getIds("singles"),
+      getIds("patch"),
       metadata.address,
-      getMetadataIndexes("singles"),
-      getPrices("singles"),
-      getQuantities("singles")
+      getMetadataIndexes("patch"),
+      getPrices("patch"),
+      getQuantities("patch")
     );
     const ids = [1, 2, 3];
     const amounts = [
@@ -350,7 +343,7 @@ describe.only("CustomQuilts contract", () => {
       tokens[2].maxQuantity,
       tokens[3].maxQuantity,
     ];
-    const totalPrice = getTotalPriceForPurchase("singles", ids, amounts);
+    const totalPrice = getTotalPriceForPurchase("patch", ids, amounts);
     await storefront.connect(addr1).purchaseTokens(ids, amounts, {
       value: totalPrice,
     });

@@ -9,7 +9,8 @@ import "../utils/Base64.sol";
 import "../utils/Random.sol";
 import "../membership/ICozyCoMembership.sol";
 import "./IPatchesStorefront.sol";
-import "./IPatchesData.sol";
+import "./IDataShared.sol";
+import "./IDataPatches.sol";
 
 contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
     // Sale state
@@ -17,24 +18,14 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
     bool public storeOpenToPublic;
 
     // Tokens are patches that can be purchased to make a custom quilt
-    struct Token {
-        uint256 price;
-        uint256 maxQuantity;
-    }
-    mapping(uint256 => Token) private tokens;
-
-    // TokenBundles are packs of multiple patches
-    struct TokenBundle {
-        uint256 price;
-        uint256 maxQuantity;
-        uint256 packSize;
-        uint256[] tokenIds;
-    }
-    mapping(uint256 => TokenBundle) private tokenBundles;
-
-    // Store metadata addresses for each token
     mapping(uint256 => address) private tokenMetadata;
     mapping(uint256 => uint256) private tokenStorageIndex;
+    mapping(uint256 => uint256) private tokenPrices;
+    mapping(uint256 => uint256) private tokenMaxQuantities;
+
+    // Token bundles are packs of multiple tokens
+    mapping(uint256 => uint256) private tokenBundleSizes;
+    mapping(uint256 => uint256[]) private tokenBundleTokenIds;
 
     // Keep track of purchased stock for each token and token pack
     mapping(uint256 => uint256) private stockLevels;
@@ -67,6 +58,18 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         _;
     }
 
+    modifier validTokens(uint256[] memory tokenIds) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            require(tokenMetadata[tokenIds[i]] != address(0), "not valid");
+        }
+        _;
+    }
+
+    modifier validAmounts(uint256[] memory tokenIds, uint256[] memory amounts) {
+        require(tokenIds.length == amounts.length, "400");
+        _;
+    }
+
     modifier hasAvailableTokenStock(
         uint256[] memory tokenIds,
         uint256[] memory amounts
@@ -74,31 +77,22 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             require(
                 stockLevels[tokenIds[i]] + amounts[i] <=
-                    tokens[tokenIds[i]].maxQuantity,
+                    tokenMaxQuantities[tokenIds[i]],
                 "out of stock"
             );
         }
         _;
     }
 
-    modifier hasAvailableTokenBundleStock(
-        uint256[] memory tokenBundleIds,
+    modifier isCorrectPublicTokenPayment(
+        uint256[] memory tokenIds,
         uint256[] memory amounts
     ) {
-        for (uint256 i = 0; i < tokenBundleIds.length; i++) {
-            require(
-                stockLevels[tokenBundleIds[i]] + amounts[i] <=
-                    tokenBundles[tokenBundleIds[i]].maxQuantity,
-                "out of stock"
-            );
-        }
-        _;
-    }
-
-    modifier validTokens(uint256[] memory tokenIds) {
+        uint256 totalPrice;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            require(tokenMetadata[tokenIds[i]] != address(0), "not valid");
+            totalPrice += tokenPrices[tokenIds[i]] * amounts[i];
         }
+        require(msg.value == totalPrice, "incorrect price");
         _;
     }
 
@@ -114,50 +108,6 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
                 amounts[i];
         }
         require(msg.value == totalPrice, "incorrect price");
-        _;
-    }
-
-    modifier isCorrectMemberTokenBundlePayment(
-        uint256 membershipId,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts
-    ) {
-        uint256 totalPrice;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            totalPrice +=
-                getTokenPriceForMember(tokenIds[i], membershipId) *
-                amounts[i];
-        }
-        require(msg.value == totalPrice, "incorrect price");
-        _;
-    }
-
-    modifier isCorrectPublicTokenPayment(
-        uint256[] memory tokenIds,
-        uint256[] memory amounts
-    ) {
-        uint256 totalPrice;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            totalPrice += tokens[tokenIds[i]].price * amounts[i];
-        }
-        require(msg.value == totalPrice, "incorrect price");
-        _;
-    }
-
-    modifier isCorrectPublicTokenBundlePayment(
-        uint256[] memory tokenBundleIds,
-        uint256[] memory amounts
-    ) {
-        uint256 totalPrice;
-        for (uint256 i = 0; i < tokenBundleIds.length; i++) {
-            totalPrice += tokenBundles[tokenBundleIds[i]].price * amounts[i];
-        }
-        require(msg.value == totalPrice, "incorrect price");
-        _;
-    }
-
-    modifier validAmounts(uint256[] memory tokenIds, uint256[] memory amounts) {
-        require(tokenIds.length == amounts.length, "400");
         _;
     }
 
@@ -177,24 +127,6 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         _mintBatch(_msgSender(), tokenIds, amounts, "");
         for (uint256 i = 0; i < tokenIds.length; i++) {
             stockLevels[tokenIds[i]] += amounts[i];
-        }
-    }
-
-    function purchaseTokenBundles(
-        uint256[] memory tokenBundleIds,
-        uint256[] memory amounts
-    )
-        public
-        payable
-        isStoreOpenToPublic
-        validTokens(tokenBundleIds)
-        validAmounts(tokenBundleIds, amounts)
-        hasAvailableTokenBundleStock(tokenBundleIds, amounts)
-        isCorrectPublicTokenBundlePayment(tokenBundleIds, amounts)
-    {
-        _mintBatch(_msgSender(), tokenBundleIds, amounts, "");
-        for (uint256 i = 0; i < tokenBundleIds.length; i++) {
-            stockLevels[tokenBundleIds[i]] += amounts[i];
         }
     }
 
@@ -218,27 +150,6 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         }
     }
 
-    function memberPurchaseTokenBundles(
-        uint256 membershipId,
-        uint256[] memory tokenBundleIds,
-        uint256[] memory amounts
-    )
-        public
-        payable
-        isCozyCoMember(membershipId)
-        isStoreOpenToMembers
-        validTokens(tokenBundleIds)
-        validAmounts(tokenBundleIds, amounts)
-        hasAvailableTokenBundleStock(tokenBundleIds, amounts)
-        isCorrectMemberTokenBundlePayment(membershipId, tokenBundleIds, amounts)
-    {
-        require(tokenBundleIds.length == amounts.length, "400");
-        _mintBatch(_msgSender(), tokenBundleIds, amounts, "");
-        for (uint256 i = 0; i < tokenBundleIds.length; i++) {
-            stockLevels[tokenBundleIds[i]] += amounts[i];
-        }
-    }
-
     /**************************************************************************
      * PACK OPENING
      *************************************************************************/
@@ -253,22 +164,24 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
                 balanceOf(_msgSender(), tokenIds[i]) >= amounts[i],
                 "not enough packs"
             );
-            toMintCount += tokenBundles[tokenIds[i]].packSize * amounts[i];
+            toMintCount += tokenBundleSizes[tokenIds[i]] * amounts[i];
         }
 
         uint256[] memory toMint = new uint256[](toMintCount);
         uint256[] memory mintAmounts = new uint256[](toMintCount);
         uint256 mintIdx;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            TokenBundle memory tokenBundle = tokenBundles[tokenIds[i]];
-
-            for (uint256 j = 0; j < tokenBundle.packSize * amounts[i]; j++) {
+            for (
+                uint256 j = 0;
+                j < tokenBundleSizes[tokenIds[i]] * amounts[i];
+                j++
+            ) {
                 uint256 rand = Random.prng(
                     "p",
                     Strings.toString(mintIdx),
                     _msgSender()
-                ) % tokenBundle.tokenIds.length;
-                toMint[mintIdx] = tokenBundle.tokenIds[rand];
+                ) % tokenBundleTokenIds[tokenIds[i]].length;
+                toMint[mintIdx] = tokenBundleTokenIds[tokenIds[i]][rand];
                 mintAmounts[mintIdx] = 1;
                 mintIdx++;
             }
@@ -280,8 +193,21 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
     }
 
     /**************************************************************************
-     * CREATION OF STOCK & DISCOUNTS
+     * CREATION OF STOCK
      *************************************************************************/
+
+    function _setTokenData(
+        uint256 tokenId,
+        address metadata,
+        uint256 price,
+        uint256 quantity,
+        uint256 storageIndex
+    ) internal {
+        tokenMetadata[tokenId] = metadata;
+        tokenPrices[tokenId] = price;
+        tokenMaxQuantities[tokenId] = quantity;
+        tokenStorageIndex[tokenId] = storageIndex;
+    }
 
     function setTokens(
         uint256[] memory tokenIds,
@@ -293,34 +219,43 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         require(tokenIds.length == prices.length, "400");
         require(prices.length == quantities.length, "400");
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            tokens[tokenIds[i]] = Token(prices[i], quantities[i]);
-            tokenMetadata[tokenIds[i]] = metadata;
-            tokenStorageIndex[tokenIds[i]] = storageIndex[i];
+            _setTokenData(
+                tokenIds[i],
+                metadata,
+                prices[i],
+                quantities[i],
+                storageIndex[i]
+            );
         }
     }
 
     function setTokenBundles(
-        uint256[] memory tokenBundleIds,
+        uint256[] memory tokenIds,
         address metadata,
         uint256[] memory storageIndex,
         uint256[] memory prices,
-        uint256[] memory packSizes,
+        uint256[] memory bundleSizes,
         uint256[] memory quantities,
-        uint256[][] memory tokenIdsInPack
+        uint256[][] memory tokenIdsInBundle
     ) public onlyOwner {
-        require(tokenBundleIds.length == quantities.length, "400");
+        require(tokenIds.length == quantities.length, "400");
         require(quantities.length == prices.length, "400");
-        for (uint256 i = 0; i < tokenBundleIds.length; i++) {
-            tokenBundles[tokenBundleIds[i]] = TokenBundle(
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            _setTokenData(
+                tokenIds[i],
+                metadata,
                 prices[i],
                 quantities[i],
-                packSizes[i],
-                tokenIdsInPack[i]
+                storageIndex[i]
             );
-            tokenMetadata[tokenBundleIds[i]] = metadata;
-            tokenStorageIndex[tokenBundleIds[i]] = storageIndex[i];
+            tokenBundleSizes[tokenIds[i]] = bundleSizes[i];
+            tokenBundleTokenIds[tokenIds[i]] = tokenIdsInBundle[i];
         }
     }
+
+    /**************************************************************************
+     * DISCOUNTS
+     *************************************************************************/
 
     function setMemberDiscounts(
         uint256 membershipId,
@@ -359,7 +294,7 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         returns (string memory tokenURI)
     {
         require(tokenMetadata[id] != address(0), "404");
-        tokenURI = IPatchesData(tokenMetadata[id]).tokenURI(
+        tokenURI = IDataShared(tokenMetadata[id]).tokenURI(
             tokenStorageIndex[id]
         );
     }
@@ -382,7 +317,7 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         view
         returns (uint256 price)
     {
-        price = tokens[tokenId].price;
+        price = tokenPrices[tokenId];
     }
 
     function getTokenPriceForMember(uint256 tokenId, uint256 membershipId)
@@ -391,11 +326,11 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         returns (uint256 memberPrice)
     {
         if (membershipDiscountBPS[membershipId][tokenId] == 0) {
-            return tokens[tokenId].price;
+            return tokenPrices[tokenId];
         }
         return
-            tokens[tokenId].price -
-            ((tokens[tokenId].price *
+            tokenPrices[tokenId] -
+            ((tokenPrices[tokenId] *
                 membershipDiscountBPS[membershipId][tokenId]) / 10000);
     }
 
@@ -404,52 +339,23 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         view
         returns (uint256 maxQuantity)
     {
-        maxQuantity = tokens[tokenId].maxQuantity;
+        maxQuantity = tokenMaxQuantities[tokenId];
     }
 
-    function getTokenBundleMetadataAddress(uint256 tokenBundleId)
+    function getTokenBundleSize(uint256 tokenId)
         public
         view
-        returns (address metadata)
+        returns (uint256 bundleSize)
     {
-        metadata = tokenMetadata[tokenBundleId];
+        bundleSize = tokenBundleSizes[tokenId];
     }
 
-    function getTokenBundlePrice(uint256 tokenBundleId)
+    function getTokenBundleTokenIds(uint256 tokenId)
         public
         view
-        returns (uint256 price)
+        returns (uint256[] memory tokenIds)
     {
-        price = tokenBundles[tokenBundleId].price;
-    }
-
-    function getTokenBundlePriceForMember(
-        uint256 tokenBundleId,
-        uint256 membershipId
-    ) public view returns (uint256 memberPrice) {
-        if (membershipDiscountBPS[membershipId][tokenBundleId] == 0) {
-            return tokenBundles[tokenBundleId].price;
-        }
-        return
-            tokenBundles[tokenBundleId].price -
-            ((tokenBundles[tokenBundleId].price *
-                membershipDiscountBPS[membershipId][tokenBundleId]) / 10000);
-    }
-
-    function getTokenBundleMaxQuantity(uint256 tokenBundleId)
-        public
-        view
-        returns (uint256 maxQuantity)
-    {
-        maxQuantity = tokenBundles[tokenBundleId].maxQuantity;
-    }
-
-    function getTokenBundleSize(uint256 tokenBundleId)
-        public
-        view
-        returns (uint256 packSize)
-    {
-        packSize = tokenBundles[tokenBundleId].packSize;
+        tokenIds = tokenBundleTokenIds[tokenId];
     }
 
     function getTokenMembershipDiscountBPS(
@@ -466,9 +372,11 @@ contract PatchesStorefront is Ownable, ERC1155Burnable, IPatchesStorefront {
         returns (string[] memory parts)
     {
         string[] memory svgParts = new string[](tokenIds.length);
-        svgParts[0] = "foo";
-        svgParts[1] = "bar";
-        svgParts[2] = "baz";
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            svgParts[i] = IDataPatches(tokenMetadata[tokenIds[i]]).patchPart(
+                tokenStorageIndex[tokenIds[i]]
+            );
+        }
         parts = svgParts;
     }
 
