@@ -5,14 +5,33 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
 import "../utils/Random.sol";
-import "./IPatchesData.sol";
+import "./IDataShared.sol";
+import "./IDataPatches.sol";
 import "./PatchesBlankStorage.sol";
 
-contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
+contract PatchesBlankData is
+    Ownable,
+    PatchesBlankStorage,
+    IDataShared,
+    IDataPatches
+{
     string public constant ARTIST = "Quilt Stitcher";
     string public constant COLLECTION = "Blanks";
 
-    function getSize(uint256 index)
+    function getArtist() public pure override returns (string memory artist) {
+        artist = ARTIST;
+    }
+
+    function getCollection()
+        public
+        pure
+        override
+        returns (string memory collection)
+    {
+        collection = COLLECTION;
+    }
+
+    function patchSize(uint256 index)
         public
         pure
         override
@@ -29,7 +48,7 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
         }
     }
 
-    function getSVGPart(uint256 index)
+    function patchPart(uint256 index)
         public
         view
         override
@@ -38,7 +57,7 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
         return svgParts[index];
     }
 
-    function getSVGParts(uint256[] memory indexes)
+    function patchParts(uint256[] memory indexes)
         public
         view
         override
@@ -56,7 +75,7 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
         override
         returns (string memory imageBase64)
     {
-        (uint8 patchW, uint8 patchH) = getSize(index);
+        (uint8 patchW, uint8 patchH) = patchSize(index);
         uint256 w = patchW * 64;
         uint256 h = patchH * 64;
         uint256 x = (200 - w) / 2;
@@ -68,7 +87,7 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
             "#FFD8CC",
             "#E6EDFF",
             "#9CE2DF"
-        ][Random.seeded("bg", Strings.toString(index)) % 5];
+        ][Random.keyPrefix("bg", Strings.toString(index)) % 5];
 
         string memory svg = Base64.encode(
             bytes(
@@ -94,6 +113,17 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
         return string(abi.encodePacked("data:image/svg+xml;base64,", svg));
     }
 
+    function tokenImages(uint256[] memory indexes)
+        public
+        view
+        override
+        returns (string[] memory imagesBase64)
+    {
+        for (uint256 i = 0; i < indexes.length; i++) {
+            imagesBase64[i] = tokenImage(i);
+        }
+    }
+
     function tokenURI(uint256 index)
         public
         view
@@ -101,7 +131,7 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
         returns (string memory tokenBase64)
     {
         string memory patchNumber = Strings.toString(index + 1);
-        (uint8 w, uint8 h) = getSize(index);
+        (uint8 w, uint8 h) = patchSize(index);
         string memory json = Base64.encode(
             bytes(
                 string(
@@ -110,7 +140,7 @@ contract PatchesBlankData is Ownable, PatchesBlankStorage, IPatchesData {
                         patchNumber,
                         '","description":"A blank patch, perfect for filling in the gaps in a custom quilt.","image": "',
                         tokenImage(index),
-                        '","attributes":[{"trait_type":"Artist","value":"',
+                        '","attributes":[{"trait_type":"Type","value":"Single patch","trait_type":"Artist","value":"',
                         ARTIST,
                         '"},{"trait_type":"Collection","value":"',
                         COLLECTION,
