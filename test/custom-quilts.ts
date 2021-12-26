@@ -68,7 +68,7 @@ function getMetadataIndexes(type: "patch" | "bundle") {
   return Object.keys(data).map((_, idx) => idx);
 }
 
-describe("PatchesStorefront contract", () => {
+describe("PatchesStockRoom contract", () => {
   let contract: Contract;
   let metadata: Contract;
   let owner: SignerWithAddress;
@@ -85,12 +85,12 @@ describe("PatchesStorefront contract", () => {
       "PatchesBlankData"
     );
     metadata = await PatchesBlankData.deploy();
-    const PatchesStorefront = await ethers.getContractFactory(
-      "PatchesStorefront"
+    const PatchesStockRoom = await ethers.getContractFactory(
+      "PatchesStockRoom"
     );
-    contract = await PatchesStorefront.deploy(cozyCoMembership.address);
-    const CustomQuilts = await ethers.getContractFactory("CustomQuilts");
-    const customQuilts = await CustomQuilts.deploy(
+    contract = await PatchesStockRoom.deploy(cozyCoMembership.address);
+    const QuiltAssembly = await ethers.getContractFactory("QuiltAssembly");
+    const customQuilts = await QuiltAssembly.deploy(
       cozyCoMembership.address,
       contract.address
     );
@@ -301,7 +301,7 @@ describe("PatchesBlankData contract", () => {
   });
 });
 
-describe("CustomQuilts contract", () => {
+describe.only("QuiltAssembly contract", () => {
   let contract: Contract;
   let storefront: Contract;
   let owner: SignerWithAddress;
@@ -318,12 +318,12 @@ describe("CustomQuilts contract", () => {
       "PatchesBlankData"
     );
     const metadata = await PatchesBlankData.deploy();
-    const PatchesStorefront = await ethers.getContractFactory(
-      "PatchesStorefront"
+    const PatchesStockRoom = await ethers.getContractFactory(
+      "PatchesStockRoom"
     );
-    storefront = await PatchesStorefront.deploy(cozyCoMembership.address);
-    const CustomQuilts = await ethers.getContractFactory("CustomQuilts");
-    contract = await CustomQuilts.deploy(
+    storefront = await PatchesStockRoom.deploy(cozyCoMembership.address);
+    const QuiltAssembly = await ethers.getContractFactory("QuiltAssembly");
+    contract = await QuiltAssembly.deploy(
       cozyCoMembership.address,
       storefront.address
     );
@@ -347,7 +347,6 @@ describe("CustomQuilts contract", () => {
     await storefront.connect(addr1).purchaseTokens(ids, amounts, {
       value: totalPrice,
     });
-    // await storefront.connect(addr1).approveQuiltsContract();
   });
 
   it("should create a quilt", async () => {

@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../membership/ICozyCoMembership.sol";
-import "./IPatchesStorefront.sol";
-import "./IDataCustomQuilts.sol";
+import "./IPatchesStockRoom.sol";
+import "./IDataQuiltAssembly.sol";
 import "hardhat/console.sol";
 
-contract CustomQuilts is Ownable, ERC721, IERC1155Receiver {
+contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
     uint256 public constant MAX_SUPPLY_2x2 = 50;
     uint256 public constant MAX_SUPPLY_2x3 = 200;
     uint256 public constant MAX_SUPPLY_2x4 = 200;
@@ -33,7 +33,7 @@ contract CustomQuilts is Ownable, ERC721, IERC1155Receiver {
 
     ICozyCoMembership private cozyCoMembership;
     address public patchesStorefront;
-    IDataCustomQuilts public metadata;
+    IDataQuiltAssembly public metadata;
 
     uint256 public totalSupply;
     uint256 public creationCost = 0.025 ether;
@@ -64,17 +64,17 @@ contract CustomQuilts is Ownable, ERC721, IERC1155Receiver {
         totalSupply = tokenId;
     }
 
-    function restitchPatches(uint256 tokenId, uint256[] memory newPatchIds)
-        public
-        payable
-    {
-        // 1. check if msg.sender owns tokenId
-        // 2. check if msg.sender owns newPatchIds that are not in tokenIdToPatchIds
-        // 3. check valid layout
-        // 4. transfer new tokens to this contract
-        // 5. transfer remainder tokens to msg.sender
-        // 6. set new layout in tokenIdToPatchIds
-    }
+    // function restitchPatches(uint256 tokenId, uint256[] memory newPatchIds)
+    //     public
+    //     payable
+    // {
+    //     // 1. check if msg.sender owns tokenId
+    //     // 2. check if msg.sender owns newPatchIds that are not in tokenIdToPatchIds
+    //     // 3. check valid layout
+    //     // 4. transfer new tokens to this contract
+    //     // 5. transfer remainder tokens to msg.sender
+    //     // 6. set new layout in tokenIdToPatchIds
+    // }
 
     function tokenURI(uint256 tokenId)
         public
@@ -83,8 +83,9 @@ contract CustomQuilts is Ownable, ERC721, IERC1155Receiver {
         override(ERC721)
         returns (string memory)
     {
-        string[] memory svgParts = IPatchesStorefront(patchesStorefront)
-            .getTokenSVGParts(tokenIdToPatchIds[tokenId]);
+        string[] memory svgParts = IPatchesStockRoom(patchesStorefront).getTokenSVGParts(
+            tokenIdToPatchIds[tokenId]
+        );
         for (uint256 i = 0; i < svgParts.length; i++) {
             console.log("part: %s", svgParts[i]);
         }
