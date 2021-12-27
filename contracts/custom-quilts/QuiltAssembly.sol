@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../membership/ICozyCoMembership.sol";
-import "./IPatchesStockRoom.sol";
+import "./IQuiltStoreStockRoom.sol";
 import "./IDataQuiltAssembly.sol";
 import "hardhat/console.sol";
 
@@ -83,12 +83,12 @@ contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
         override(ERC721)
         returns (string memory)
     {
-        string[] memory svgParts = IPatchesStockRoom(patchesStorefront).getTokenSVGParts(
-            tokenIdToPatchIds[tokenId]
-        );
-        for (uint256 i = 0; i < svgParts.length; i++) {
-            console.log("part: %s", svgParts[i]);
-        }
+        // string[] memory svgParts = IQuiltStoreStockRoom(patchesStorefront).getTokenSVGParts(
+        //     tokenIdToPatchIds[tokenId]
+        // );
+        // for (uint256 i = 0; i < svgParts.length; i++) {
+        //     console.log("part: %s", svgParts[i]);
+        // }
         return "yo";
     }
 

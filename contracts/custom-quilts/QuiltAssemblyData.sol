@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
 import "./IDataQuiltAssembly.sol";
-import "./IPatchesStockRoom.sol";
+import "./IQuiltStoreStockRoom.sol";
 
 contract QuiltAssemblyData is Ownable, IDataQuiltAssembly {
     function tokenImage(uint256 index) public pure returns (string memory imageBase64) {

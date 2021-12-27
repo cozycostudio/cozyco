@@ -68,7 +68,97 @@ function getMetadataIndexes(type: "patch" | "bundle") {
   return Object.keys(data).map((_, idx) => idx);
 }
 
-describe("PatchesStockRoom contract", () => {
+describe.only("QuiltStoreAdmin contract", () => {
+  let contract: Contract;
+  let stockRoom: Contract;
+  let metadata: Contract;
+  let owner: SignerWithAddress;
+  let addr1: SignerWithAddress;
+  let addr2: SignerWithAddress;
+
+  beforeEach(async () => {
+    [owner, addr1, addr2] = await ethers.getSigners();
+    const CozyCoMembership = await ethers.getContractFactory(
+      "CozyCoMembership"
+    );
+    const cozyCoMembership = await CozyCoMembership.deploy();
+    const QuiltStoreStockRoom = await ethers.getContractFactory(
+      "QuiltStoreStockRoom"
+    );
+    stockRoom = await QuiltStoreStockRoom.deploy();
+    const PatchesBlankData = await ethers.getContractFactory(
+      "PatchesBlankData"
+    );
+    metadata = await PatchesBlankData.deploy();
+    const QuiltStoreAdmin = await ethers.getContractFactory("QuiltStoreAdmin");
+    contract = await QuiltStoreAdmin.deploy(
+      stockRoom.address,
+      cozyCoMembership.address
+    );
+    await stockRoom.setStoreAdmin(contract.address);
+    await contract.setMemberOpenState(true);
+    await contract.setPublicOpenState(true);
+  });
+
+  describe("Purchasing", () => {
+    beforeEach(async () => {
+      await stockRoom.addStock(
+        getIds("patch"),
+        metadata.address,
+        getQuantities("patch"),
+        getMetadataIndexes("patch")
+      );
+      await contract.setPrices(getIds("patch"), getPrices("patch"));
+    });
+
+    it("should allow purchasing of tokens", async () => {
+      const ids = [1, 2, 3];
+      const amounts = [
+        tokens[1].maxQuantity / 2,
+        tokens[2].maxQuantity / 2,
+        tokens[3].maxQuantity / 2,
+      ];
+      const totalPrice = getTotalPriceForPurchase("patch", ids, amounts);
+      expect(
+        await contract.connect(addr1).purchaseTokens(ids, amounts, {
+          value: totalPrice,
+        })
+      )
+        .to.emit(stockRoom, "TransferBatch")
+        .withArgs(
+          contract.address,
+          ethers.constants.AddressZero,
+          addr1.address,
+          ids,
+          amounts
+        );
+
+      console.log(
+        await stockRoom.balanceOfBatch(
+          ids.map((_) => addr1.address),
+          ids
+        )
+      );
+
+      await contract.connect(addr1).purchaseTokens(ids, amounts, {
+        value: totalPrice,
+      });
+
+      // expect(
+      //   await stockRoom.balanceOfBatch(
+      //     ids.map((_) => addr1.address),
+      //     ids
+      //   )
+      // ).to.eql([
+      //   BigNumber.from(tokens[1].maxQuantity),
+      //   BigNumber.from(tokens[2].maxQuantity),
+      //   BigNumber.from(tokens[3].maxQuantity),
+      // ]);
+    });
+  });
+});
+
+describe.skip("QuiltStoreStockRoom contract", () => {
   let contract: Contract;
   let metadata: Contract;
   let owner: SignerWithAddress;
@@ -85,10 +175,10 @@ describe("PatchesStockRoom contract", () => {
       "PatchesBlankData"
     );
     metadata = await PatchesBlankData.deploy();
-    const PatchesStockRoom = await ethers.getContractFactory(
-      "PatchesStockRoom"
+    const QuiltStoreStockRoom = await ethers.getContractFactory(
+      "QuiltStoreStockRoom"
     );
-    contract = await PatchesStockRoom.deploy(cozyCoMembership.address);
+    contract = await QuiltStoreStockRoom.deploy();
     const QuiltAssembly = await ethers.getContractFactory("QuiltAssembly");
     const customQuilts = await QuiltAssembly.deploy(
       cozyCoMembership.address,
@@ -105,12 +195,11 @@ describe("PatchesStockRoom contract", () => {
 
   describe("Tokens", () => {
     beforeEach(async () => {
-      await contract.setTokens(
+      await contract.addStock(
         getIds("patch"),
         metadata.address,
-        getMetadataIndexes("patch"),
-        getPrices("patch"),
-        getQuantities("patch")
+        getQuantities("patch"),
+        getMetadataIndexes("patch")
       );
     });
 
@@ -118,8 +207,6 @@ describe("PatchesStockRoom contract", () => {
       expect(await contract.getTokenMetadataAddress(1)).to.equal(
         metadata.address
       );
-      expect(await contract.getTokenPrice(1)).to.equal(tokens[1].price);
-      expect(await contract.getTokenPrice(2)).to.equal(tokens[2].price);
       expect(await contract.getTokenMaxQuantity(1)).to.equal(
         tokens[1].maxQuantity
       );
@@ -301,9 +388,9 @@ describe("PatchesBlankData contract", () => {
   });
 });
 
-describe.only("QuiltAssembly contract", () => {
+describe.skip("QuiltAssembly contract", () => {
   let contract: Contract;
-  let storefront: Contract;
+  let stockRoom: Contract;
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let addr2: SignerWithAddress;
@@ -318,19 +405,19 @@ describe.only("QuiltAssembly contract", () => {
       "PatchesBlankData"
     );
     const metadata = await PatchesBlankData.deploy();
-    const PatchesStockRoom = await ethers.getContractFactory(
-      "PatchesStockRoom"
+    const QuiltStoreStockRoom = await ethers.getContractFactory(
+      "QuiltStoreStockRoom"
     );
-    storefront = await PatchesStockRoom.deploy(cozyCoMembership.address);
+    stockRoom = await QuiltStoreStockRoom.deploy();
     const QuiltAssembly = await ethers.getContractFactory("QuiltAssembly");
     contract = await QuiltAssembly.deploy(
       cozyCoMembership.address,
-      storefront.address
+      stockRoom.address
     );
-    await storefront.setCustomQuiltsAddress(contract.address);
-    await storefront.setMemberOpenState(true);
-    await storefront.setPublicOpenState(true);
-    await storefront.setTokens(
+    await stockRoom.setCustomQuiltsAddress(contract.address);
+    await stockRoom.setMemberOpenState(true);
+    await stockRoom.setPublicOpenState(true);
+    await stockRoom.setTokens(
       getIds("patch"),
       metadata.address,
       getMetadataIndexes("patch"),
@@ -344,22 +431,22 @@ describe.only("QuiltAssembly contract", () => {
       tokens[3].maxQuantity,
     ];
     const totalPrice = getTotalPriceForPurchase("patch", ids, amounts);
-    await storefront.connect(addr1).purchaseTokens(ids, amounts, {
+    await stockRoom.connect(addr1).purchaseTokens(ids, amounts, {
       value: totalPrice,
     });
   });
 
   it("should create a quilt", async () => {
     const price = await contract.creationCost();
-    console.log(await storefront.balanceOf(addr1.address, 1));
-    console.log(await storefront.balanceOf(addr1.address, 2));
-    console.log(await storefront.balanceOf(addr1.address, 3));
+    console.log(await stockRoom.balanceOf(addr1.address, 1));
+    console.log(await stockRoom.balanceOf(addr1.address, 2));
+    console.log(await stockRoom.balanceOf(addr1.address, 3));
 
     await contract.connect(addr1).createQuilt([1, 2, 3], { value: price });
 
-    console.log(await storefront.balanceOf(addr1.address, 1));
-    console.log(await storefront.balanceOf(addr1.address, 2));
-    console.log(await storefront.balanceOf(addr1.address, 3));
+    console.log(await stockRoom.balanceOf(addr1.address, 1));
+    console.log(await stockRoom.balanceOf(addr1.address, 2));
+    console.log(await stockRoom.balanceOf(addr1.address, 3));
 
     expect(true).to.be.true;
 
