@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.10;
 
 interface ICozyCoMembership {
     function balanceOf(address account, uint256 id)

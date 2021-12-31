@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.10;
 
 library Random {
     function seeded(string memory seed) internal pure returns (uint256) {

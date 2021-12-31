@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
@@ -80,7 +80,7 @@ contract QuiltStoreStockRoom is Ownable, ERC1155Burnable, IQuiltStoreStockRoom {
         address customer,
         uint256[] memory tokenIds,
         uint256[] memory amounts
-    ) public {
+    ) public override {
         // Burning checks if the from address has tokens and reverts if not,
         // so we don't need to check any balances
         _burnBatch(customer, tokenIds, amounts);
@@ -145,7 +145,7 @@ contract QuiltStoreStockRoom is Ownable, ERC1155Burnable, IQuiltStoreStockRoom {
         address metadata,
         uint256[] memory quantities,
         uint256[] memory storageIndex
-    ) public onlyOwner {
+    ) public override isAdmin {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _addBaseTokenData(tokenIds[i], metadata, quantities[i], storageIndex[i]);
         }
@@ -158,7 +158,7 @@ contract QuiltStoreStockRoom is Ownable, ERC1155Burnable, IQuiltStoreStockRoom {
         uint256[] memory storageIndex,
         uint256[] memory bundleSizes,
         uint256[][] memory tokenIdsInBundle
-    ) public onlyOwner {
+    ) public override isAdmin {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _addBaseTokenData(tokenIds[i], metadata, quantities[i], storageIndex[i]);
             tokenBundleSizes[tokenIds[i]] = bundleSizes[i];
@@ -168,7 +168,8 @@ contract QuiltStoreStockRoom is Ownable, ERC1155Burnable, IQuiltStoreStockRoom {
 
     function restockTokens(uint256[] memory tokenIds, uint256[] memory quantities)
         public
-        onlyOwner
+        override
+        isAdmin
     {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             tokenQuantities[tokenIds[i]] += quantities[i];
@@ -206,7 +207,7 @@ contract QuiltStoreStockRoom is Ownable, ERC1155Burnable, IQuiltStoreStockRoom {
         quantity = tokenQuantities[tokenId];
     }
 
-    function getTokenSoldAmount(uint256 tokenId) public view override returns (uint256 unitSold) {
+    function tokenUnitsSold(uint256 tokenId) public view override returns (uint256 unitSold) {
         unitSold = stockSold[tokenId];
     }
 

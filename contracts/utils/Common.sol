@@ -1,4 +1,4 @@
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.10;
 
 contract CommonConstants {
     // bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))

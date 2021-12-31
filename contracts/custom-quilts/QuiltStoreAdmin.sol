@@ -1,82 +1,84 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/Random.sol";
 import "../membership/ICozyCoMembership.sol";
 import "./IQuiltStoreStockRoom.sol";
 import "./IDataShared.sol";
 import "./IDataPatches.sol";
 
-contract QuiltStoreAdmin is Ownable {
-    // Sale state
+contract QuiltStoreAdmin is Ownable, ReentrancyGuard {
+    /**************************************************************************
+     * STORAGE
+     *************************************************************************/
+
+    /** Proxies **/
+    IQuiltStoreStockRoom private stockRoom;
+    IQuiltStoreStockRoom private communityStockRoom;
+    ICozyCoMembership private cozyCoMembership;
+    address private customQuilts;
+
+    /** Opening hours **/
     bool public storeOpenToMembers;
     bool public storeOpenToPublic;
 
-    // Inventory prices
-    mapping(uint256 => uint256) private prices;
+    /** Pricing and sales data **/
+    struct TokenSaleData {
+        uint256 price;
+        uint256 memberPrice;
+        uint256 memberSales;
+        bool isMemberExclusive;
+    }
+    mapping(uint256 => TokenSaleData) private tokenSaleData;
+
+    /** Creator payments **/
+    struct Collection {
+        mapping(address => uint256) creatorShares;
+        mapping(address => uint256) creatorReleasedPayments;
+        uint256[] tokenIds;
+    }
+    mapping(uint256 => Collection) private collections;
+    uint256 private nextCollectionId = 1;
+
     // TODO: Handle quilt assembly prices
 
-    // Mapping of membership type to tokenId to discounts BPS
-    mapping(uint256 => mapping(uint256 => uint256)) private discounts;
-    ICozyCoMembership private cozyCoMembership;
-    IQuiltStoreStockRoom private stockRoom;
-    address private customQuilts;
+    /**************************************************************************
+     * ERRORS
+     *************************************************************************/
 
-    // Creator address to token id to payout percentage
-    mapping(address => mapping(uint256 => uint256)) private creatorPercentage;
-    mapping(address => uint256[]) private creatorAttributions;
+    error NotAuthorized();
+    error NotOpen();
+    error MemberExclusive();
+    error InvalidConfiguration();
+    error IncorrectPaymentAmount();
+    error NotCollaborator();
+    error TransferFailed();
+    error ZeroBalance();
 
     /**************************************************************************
      * MODIFIERS
      *************************************************************************/
 
-    modifier isStoreOpenToMembers() {
-        require(storeOpenToMembers, "store is closed");
+    modifier onlyOpenToMembers() {
+        if (!storeOpenToMembers) revert NotOpen();
         _;
     }
 
-    modifier isStoreOpenToPublic() {
-        require(storeOpenToPublic, "store is closed");
+    modifier onlyOpenToPublic() {
+        if (!storeOpenToPublic) revert NotOpen();
         _;
     }
 
-    modifier isCozyCoMember(uint256 membershipId) {
-        require(cozyCoMembership.balanceOf(_msgSender(), membershipId) > 0, "not a cozy co member");
+    modifier onlyMember(uint256 membershipId) {
+        if (cozyCoMembership.balanceOf(_msgSender(), membershipId) < 1) revert NotAuthorized();
         _;
     }
 
-    modifier isValidTokenAmounts(uint256[] memory tokenIds, uint256[] memory amounts) {
-        require(tokenIds.length == amounts.length, "incorrect amounts");
+    modifier onlyValidTokenIdsAndAmounts(uint256[] memory tokenIds, uint256[] memory amounts) {
+        if (tokenIds.length != amounts.length) revert InvalidConfiguration();
         _;
-    }
-
-    modifier isCorrectPublicTokenPayment(uint256[] memory tokenIds, uint256[] memory amounts) {
-        uint256 totalPrice;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            totalPrice += prices[tokenIds[i]] * amounts[i];
-        }
-        require(msg.value == totalPrice, "incorrect price");
-        _;
-    }
-
-    modifier isCorrectMemberTokenPayment(
-        uint256 membershipId,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts
-    ) {
-        uint256 totalPrice;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            totalPrice += getTokenPriceForMember(tokenIds[i], membershipId) * amounts[i];
-        }
-        require(msg.value == totalPrice, "incorrect price");
-        _;
-    }
-
-    function setPrices(uint256[] memory tokenIds, uint256[] memory _prices) public onlyOwner {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            prices[tokenIds[i]] = _prices[i];
-        }
     }
 
     /**************************************************************************
@@ -86,10 +88,15 @@ contract QuiltStoreAdmin is Ownable {
     function purchaseTokens(uint256[] memory tokenIds, uint256[] memory amounts)
         public
         payable
-        isStoreOpenToPublic
-        isValidTokenAmounts(tokenIds, amounts)
-        isCorrectPublicTokenPayment(tokenIds, amounts)
+        onlyOpenToPublic
+        onlyValidTokenIdsAndAmounts(tokenIds, amounts)
     {
+        uint256 totalPrice;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            totalPrice += tokenSaleData[tokenIds[i]].price * amounts[i];
+            if (tokenSaleData[tokenIds[i]].isMemberExclusive) revert MemberExclusive();
+        }
+        if (msg.value != totalPrice) revert IncorrectPaymentAmount();
         stockRoom.giveStockToCustomer(_msgSender(), tokenIds, amounts);
     }
 
@@ -100,11 +107,16 @@ contract QuiltStoreAdmin is Ownable {
     )
         public
         payable
-        isCozyCoMember(membershipId)
-        isStoreOpenToMembers
-        isValidTokenAmounts(tokenIds, amounts)
-        isCorrectMemberTokenPayment(membershipId, tokenIds, amounts)
+        onlyMember(membershipId)
+        onlyOpenToMembers
+        onlyValidTokenIdsAndAmounts(tokenIds, amounts)
     {
+        uint256 totalPrice;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            totalPrice += tokenSaleData[tokenIds[i]].memberPrice * amounts[i];
+            tokenSaleData[tokenIds[i]].memberSales += amounts[i];
+        }
+        if (msg.value != totalPrice) revert IncorrectPaymentAmount();
         stockRoom.giveStockToCustomer(_msgSender(), tokenIds, amounts);
     }
 
@@ -113,64 +125,149 @@ contract QuiltStoreAdmin is Ownable {
     }
 
     /**************************************************************************
-     * DISCOUNTS
+     * PRICING
      *************************************************************************/
 
-    /**************************************************************************
-     * DISCOUNTS
-     *************************************************************************/
-
-    function setMemberDiscounts(
-        uint256 membershipId,
+    function addStock(
         uint256[] memory tokenIds,
-        uint256[] memory discountBasisPoints
+        uint256[] memory prices,
+        uint256[] memory memberPrices,
+        address metadata,
+        uint256[] memory quantities,
+        uint256[] memory storageIndex
     ) public onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            discounts[membershipId][tokenIds[i]] = discountBasisPoints[i];
+            tokenSaleData[tokenIds[i]].price = prices[i];
+            tokenSaleData[tokenIds[i]].memberPrice = memberPrices[i];
         }
+        stockRoom.addStock(tokenIds, metadata, quantities, storageIndex);
     }
 
-    function getTokenPriceForMember(uint256 tokenId, uint256 membershipId)
-        public
-        view
-        returns (uint256 memberPrice)
-    {
-        if (discounts[membershipId][tokenId] == 0) return prices[tokenId];
-        return prices[tokenId] - ((prices[tokenId] * discounts[membershipId][tokenId]) / 10000);
-    }
-
-    /**************************************************************************
-     * STORE OPENING HOURS
-     *************************************************************************/
-
-    function setMemberOpenState(bool isOpen) public onlyOwner {
-        storeOpenToMembers = isOpen;
-    }
-
-    function setPublicOpenState(bool isOpen) public onlyOwner {
-        storeOpenToPublic = isOpen;
+    function addBundleStock(
+        uint256[] memory tokenIds,
+        uint256[] memory prices,
+        uint256[] memory memberPrices,
+        address metadata,
+        uint256[] memory quantities,
+        uint256[] memory storageIndex,
+        uint256[] memory bundleSizes,
+        uint256[][] memory tokenIdsInBundle
+    ) public onlyOwner {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokenSaleData[tokenIds[i]].price = prices[i];
+            tokenSaleData[tokenIds[i]].memberPrice = memberPrices[i];
+        }
+        stockRoom.addBundleStock(
+            tokenIds,
+            metadata,
+            quantities,
+            storageIndex,
+            bundleSizes,
+            tokenIdsInBundle
+        );
     }
 
     /**************************************************************************
      * CREATORS
      *************************************************************************/
 
-    function attributeTokensToCreator(uint256[] memory tokenIds, address creator) public onlyOwner {
-        creatorAttributions[creator] = tokenIds;
-    }
-
-    function getCreatorSalesBalance(address creator) public view returns (uint256 balance) {
-        for (uint256 i = 0; i < creatorAttributions[creator].length; i++) {
-            uint256 tokenId = creatorAttributions[creator][i];
-            uint256 sales = stockRoom.getTokenSoldAmount(tokenId);
-            // Price is the creator share of the total token price
-            uint256 price = (prices[tokenId] * creatorPercentage[creator][tokenId]) / 10000;
-            balance += sales * price;
+    /**
+     * @dev A collection holds information about creator payments for certain
+     * token ids. This function adds that data.
+     */
+    function addCollectionInfo(
+        address[] memory creators,
+        uint256[] memory creatorShares,
+        uint256[] memory tokenIds
+    ) public onlyOwner {
+        uint256 totalShares;
+        for (uint256 i = 0; i < creators.length; i++) {
+            collections[nextCollectionId].creatorShares[creators[i]] = creatorShares[i];
+            totalShares += creatorShares[i];
         }
+        if (totalShares != 10000) revert InvalidConfiguration();
+        collections[nextCollectionId].tokenIds = tokenIds;
+        nextCollectionId += 1;
     }
 
-    function creatorPayment() public {
-        require(payable(_msgSender()).send(getCreatorSalesBalance(_msgSender())), "payment failed");
+    /**
+     * @dev Like `addCollectionInfo` but it overwrites any existing information.
+     */
+    function dangerouslyUpdateCollectionInfo(
+        uint256 collectionId,
+        address[] memory creators,
+        uint256[] memory creatorShares,
+        uint256[] memory tokenIds
+    ) public onlyOwner {
+        uint256 totalShares;
+        for (uint256 i = 0; i < creators.length; i++) {
+            collections[collectionId].creatorShares[creators[i]] = creatorShares[i];
+            totalShares += creatorShares[i];
+        }
+        if (totalShares != 10000) revert InvalidConfiguration();
+        collections[collectionId].tokenIds = tokenIds;
+    }
+
+    /**
+     * @dev Gets the pending payment to a collaborator for a collection.
+     */
+    function pendingPaymentForCollection(uint256 collectionId, address collaborator)
+        public
+        view
+        returns (uint256 pendingPayment)
+    {
+        if (collections[collectionId].creatorShares[collaborator] == 0) revert NotCollaborator();
+        uint256 amount;
+        for (uint256 i = 0; i < collections[collectionId].tokenIds.length; i++) {
+            uint256 tokenId = collections[collectionId].tokenIds[i];
+            uint256 publicSales = stockRoom.tokenUnitsSold(tokenId) -
+                tokenSaleData[tokenId].memberSales;
+            uint256 totalPaymentForSales = (publicSales * tokenSaleData[tokenId].price) +
+                (tokenSaleData[tokenId].memberSales * tokenSaleData[tokenId].memberPrice);
+            amount +=
+                (totalPaymentForSales * collections[collectionId].creatorShares[collaborator]) /
+                10000;
+        }
+        pendingPayment = amount - collections[collectionId].creatorReleasedPayments[collaborator];
+    }
+
+    /**
+     * @dev Gets the amount released to a collaborator for a collection.
+     */
+    function releasedPayments(uint256 collectionId, address collaborator)
+        public
+        view
+        returns (uint256 released)
+    {
+        released = collections[collectionId].creatorReleasedPayments[collaborator];
+    }
+
+    /**
+     * @dev Sends a payment to a cozy collaborator for a given collection.
+     */
+    function collectPaymentFromCollection(uint256 collectionId) public nonReentrant {
+        uint256 payment = pendingPaymentForCollection(collectionId, _msgSender());
+        if (payment == 0) revert ZeroBalance();
+        collections[collectionId].creatorReleasedPayments[_msgSender()] += payment;
+        (bool success, ) = _msgSender().call{value: payment}(new bytes(0));
+        if (!success) revert TransferFailed();
+    }
+
+    /**************************************************************************
+     * STORE OPENING HOURS
+     *************************************************************************/
+
+    function openStoreForMembers() public onlyOwner {
+        storeOpenToMembers = true;
+    }
+
+    function openStoreForPublic() public onlyOwner {
+        storeOpenToPublic = true;
+    }
+
+    function closeStore() public onlyOwner {
+        storeOpenToMembers = false;
+        storeOpenToPublic = false;
     }
 
     /**************************************************************************
