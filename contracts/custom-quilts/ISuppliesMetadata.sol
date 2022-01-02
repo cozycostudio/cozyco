@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-interface IDataQuiltAssembly {
-    function tokenURI(uint256 tokenId, string[] memory patchParts)
+interface ISuppliesMetadata {
+    function tokenURI(uint256 tokenId, uint256 atIndex)
         external
         view
         returns (string memory tokenBase64);

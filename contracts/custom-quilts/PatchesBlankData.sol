@@ -5,38 +5,64 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
 import "../utils/Random.sol";
-import "./IDataShared.sol";
+import "./ISuppliesMetadata.sol";
 import "./IDataPatches.sol";
-import "./PatchesBlankStorage.sol";
 
-contract PatchesBlankData is
-    Ownable,
-    PatchesBlankStorage,
-    IDataShared,
-    IDataPatches
-{
+contract PatchesBlankData is Ownable, ISuppliesMetadata, IDataPatches {
     string public constant ARTIST = "Quilt Stitcher";
     string public constant COLLECTION = "Blanks";
 
-    function getArtist() public pure override returns (string memory artist) {
+    string[36] public svgParts = [
+        // 1x1
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="64" x="0" y="0" fill="#ffffff" />',
+        // 2x1
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="64" x="0" y="0" fill="#ffffff" />',
+        // 1x1
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="64" height="128" x="0" y="0" fill="#ffffff" />',
+        // 2x2
+        '<rect width="128" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="128" x="0" y="0" fill="#ffffff" />',
+        '<rect width="128" height="128" x="0" y="0" fill="#ffffff" />'
+    ];
+
+    function getArtist() public pure returns (string memory artist) {
         artist = ARTIST;
     }
 
-    function getCollection()
-        public
-        pure
-        override
-        returns (string memory collection)
-    {
+    function getCollection() public pure returns (string memory collection) {
         collection = COLLECTION;
     }
 
-    function patchSize(uint256 index)
-        public
-        pure
-        override
-        returns (uint8 w, uint8 h)
-    {
+    function patchSize(uint256 index) public pure override returns (uint8 w, uint8 h) {
         if (index < 16) {
             return (1, 1);
         } else if (index < 24) {
@@ -48,12 +74,7 @@ contract PatchesBlankData is
         }
     }
 
-    function patchPart(uint256 index)
-        public
-        view
-        override
-        returns (string memory part)
-    {
+    function patchPart(uint256 index) public view override returns (string memory part) {
         return svgParts[index];
     }
 
@@ -69,25 +90,16 @@ contract PatchesBlankData is
         return parts;
     }
 
-    function tokenImage(uint256 index)
-        public
-        view
-        override
-        returns (string memory imageBase64)
-    {
+    function tokenImage(uint256 index) public view override returns (string memory imageBase64) {
         (uint8 patchW, uint8 patchH) = patchSize(index);
         uint256 w = patchW * 64;
         uint256 h = patchH * 64;
         uint256 x = (200 - w) / 2;
         uint256 y = (200 - h) / 2;
 
-        string memory background = [
-            "#FBF4F0",
-            "#FFEDED",
-            "#FFD8CC",
-            "#E6EDFF",
-            "#9CE2DF"
-        ][Random.keyPrefix("bg", Strings.toString(index)) % 5];
+        string memory background = ["#FBF4F0", "#FFEDED", "#FFD8CC", "#E6EDFF", "#9CE2DF"][
+            Random.keyPrefix("bg", Strings.toString(index)) % 5
+        ];
 
         string memory svg = Base64.encode(
             bytes(
@@ -124,7 +136,7 @@ contract PatchesBlankData is
         }
     }
 
-    function tokenURI(uint256 index)
+    function tokenURI(uint256 tokenId, uint256 index)
         public
         view
         override

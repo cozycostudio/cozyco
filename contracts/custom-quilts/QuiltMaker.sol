@@ -6,34 +6,32 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../membership/ICozyCoMembership.sol";
-import "./IQuiltStoreStockRoom.sol";
-import "./IDataQuiltAssembly.sol";
-import "hardhat/console.sol";
+import "./IQuiltMakerMetadata.sol";
 
-contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
-    uint256 public constant MAX_SUPPLY_2x2 = 50;
-    uint256 public constant MAX_SUPPLY_2x3 = 200;
-    uint256 public constant MAX_SUPPLY_2x4 = 200;
-    uint256 public constant MAX_SUPPLY_4x2 = 200;
-    uint256 public constant MAX_SUPPLY_3x2 = 200;
-    uint256 public constant MAX_SUPPLY_3x4 = 800;
-    uint256 public constant MAX_SUPPLY_3x3 = 800;
-    uint256 public constant MAX_SUPPLY_4x3 = 800;
-    uint256 public constant MAX_SUPPLY_4x4 = 800;
-    uint256 public constant MAX_SUPPLY_3x5 = 400;
-    uint256 public constant MAX_SUPPLY_4x5 = 400;
-    uint256 public constant MAX_SUPPLY_5x5 = 400;
-    uint256 public constant MAX_SUPPLY_5x4 = 400;
-    uint256 public constant MAX_SUPPLY_5x3 = 400;
-    uint256 public constant MAX_SUPPLY_4x6 = 200;
-    uint256 public constant MAX_SUPPLY_5x6 = 200;
-    uint256 public constant MAX_SUPPLY_6x5 = 200;
-    uint256 public constant MAX_SUPPLY_6x4 = 200;
-    uint256 public constant MAX_SUPPLY_6x6 = 50;
+contract QuiltMaker is Ownable, ERC721, IERC1155Receiver {
+    // uint256 public constant MAX_SUPPLY_2x2 = 50;
+    // uint256 public constant MAX_SUPPLY_2x3 = 200;
+    // uint256 public constant MAX_SUPPLY_2x4 = 200;
+    // uint256 public constant MAX_SUPPLY_4x2 = 200;
+    // uint256 public constant MAX_SUPPLY_3x2 = 200;
+    // uint256 public constant MAX_SUPPLY_3x4 = 800;
+    // uint256 public constant MAX_SUPPLY_3x3 = 800;
+    // uint256 public constant MAX_SUPPLY_4x3 = 800;
+    // uint256 public constant MAX_SUPPLY_4x4 = 800;
+    // uint256 public constant MAX_SUPPLY_3x5 = 400;
+    // uint256 public constant MAX_SUPPLY_4x5 = 400;
+    // uint256 public constant MAX_SUPPLY_5x5 = 400;
+    // uint256 public constant MAX_SUPPLY_5x4 = 400;
+    // uint256 public constant MAX_SUPPLY_5x3 = 400;
+    // uint256 public constant MAX_SUPPLY_4x6 = 200;
+    // uint256 public constant MAX_SUPPLY_5x6 = 200;
+    // uint256 public constant MAX_SUPPLY_6x5 = 200;
+    // uint256 public constant MAX_SUPPLY_6x4 = 200;
+    // uint256 public constant MAX_SUPPLY_6x6 = 50;
 
     ICozyCoMembership private cozyCoMembership;
-    address public patchesStorefront;
-    IDataQuiltAssembly public metadata;
+    address public supplyStore;
+    IQuiltMakerMetadata public metadata;
 
     uint256 public totalSupply;
     uint256 public creationCost = 0.025 ether;
@@ -49,7 +47,7 @@ contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
         for (uint256 i = 0; i < patchIds.length; i++) {
             transferAmounts[i] = 1;
         }
-        IERC1155(patchesStorefront).safeBatchTransferFrom(
+        IERC1155(supplyStore).safeBatchTransferFrom(
             _msgSender(),
             address(this),
             patchIds,
@@ -64,7 +62,7 @@ contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
         totalSupply = tokenId;
     }
 
-    // function restitchPatches(uint256 tokenId, uint256[] memory newPatchIds)
+    // function recycleQuilt(uint256 tokenId, uint256[] memory newPatchIds)
     //     public
     //     payable
     // {
@@ -83,13 +81,7 @@ contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
         override(ERC721)
         returns (string memory)
     {
-        // string[] memory svgParts = IQuiltStoreStockRoom(patchesStorefront).getTokenSVGParts(
-        //     tokenIdToPatchIds[tokenId]
-        // );
-        // for (uint256 i = 0; i < svgParts.length; i++) {
-        //     console.log("part: %s", svgParts[i]);
-        // }
-        return "yo";
+        return string(abi.encodePacked(tokenId));
     }
 
     function onERC1155Received(
@@ -112,10 +104,10 @@ contract QuiltAssembly is Ownable, ERC721, IERC1155Receiver {
         return this.onERC1155BatchReceived.selector;
     }
 
-    constructor(address membershipAddress, address patchesStorefrontAddress)
+    constructor(address membershipAddr, address supplyStoreAddr)
         ERC721("cozy co. custom quilts", "CCCQ")
     {
-        cozyCoMembership = ICozyCoMembership(membershipAddress);
-        patchesStorefront = patchesStorefrontAddress;
+        cozyCoMembership = ICozyCoMembership(membershipAddr);
+        supplyStore = supplyStoreAddr;
     }
 }

@@ -5,25 +5,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
 import "../utils/Random.sol";
-import "./IDataShared.sol";
+import "./ISuppliesMetadata.sol";
 
-contract PatchesBlankBundlesData is Ownable, IDataShared {
+contract PatchesBlankBundlesData is Ownable, ISuppliesMetadata {
     string public constant ARTIST = "Quilt Stitcher";
     string public constant COLLECTION = "Blanks";
 
     mapping(uint256 => string) public tokenNames;
     mapping(uint256 => string) public tokenImages;
 
-    function getArtist() public pure override returns (string memory artist) {
+    function getArtist() public pure returns (string memory artist) {
         artist = ARTIST;
     }
 
-    function getCollection()
-        public
-        pure
-        override
-        returns (string memory collection)
-    {
+    function getCollection() public pure returns (string memory collection) {
         collection = COLLECTION;
     }
 
@@ -38,7 +33,7 @@ contract PatchesBlankBundlesData is Ownable, IDataShared {
         }
     }
 
-    function tokenURI(uint256 index)
+    function tokenURI(uint256 tokenId, uint256 index)
         public
         view
         override

@@ -4,20 +4,14 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
-import "./IDataQuiltAssembly.sol";
-import "./IQuiltStoreStockRoom.sol";
+import "./IQuiltMakerMetadata.sol";
 
-contract QuiltAssemblyData is Ownable, IDataQuiltAssembly {
+contract QuiltMakerMetadata is Ownable, IQuiltMakerMetadata {
     function tokenImage(uint256 index) public pure returns (string memory imageBase64) {
-        return string(abi.encodePacked("data:image/svg+xml;base64,"));
+        return string(abi.encodePacked("data:image/svg+xml;base64,", index));
     }
 
-    function tokenURI(uint256 tokenId, string[] memory patchParts)
-        public
-        view
-        override
-        returns (string memory tokenBase64)
-    {
+    function tokenURI(uint256 tokenId) public pure override returns (string memory tokenBase64) {
         string memory json = Base64.encode(
             bytes(
                 string(
