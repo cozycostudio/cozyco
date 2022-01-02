@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "../utils/Base64.sol";
-import "../utils/Random.sol";
-import "./ISuppliesMetadata.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Base64} from "../../utils/Base64.sol";
+import {Random} from "../../utils/Random.sol";
+import {ISuppliesMetadata} from "../ISuppliesMetadata.sol";
 
 contract PatchesBlankBundlesData is Ownable, ISuppliesMetadata {
     string public constant ARTIST = "Quilt Stitcher";

@@ -5,6 +5,7 @@ specifiers:
   '@nomiclabs/hardhat-etherscan': ^2.1.6
   '@nomiclabs/hardhat-waffle': ^2.0.1
   '@openzeppelin/contracts': ^4.3.2
+  '@rari-capital/solmate': ^6.0.0
   '@reach/dialog': ^0.16.2
   '@reach/menu-button': ^0.16.2
   '@reach/popover': ^0.16.2
@@ -56,6 +57,7 @@ specifiers:
   web3modal: ^1.9.4
 
 dependencies:
+  '@rari-capital/solmate': 6.0.0
   '@reach/dialog': 0.16.2_7510db4ec16e957d3f42221e7066b6f6
   '@reach/menu-button': 0.16.2_react-dom@17.0.2+react@17.0.2
   '@reach/popover': 0.16.2_react-dom@17.0.2+react@17.0.2
@@ -1003,6 +1005,10 @@ packages:
 
   /@pedrouid/environment/1.0.1:
     resolution: {integrity: sha512-HaW78NszGzRZd9SeoI3JD11JqY+lubnaOx7Pewj5pfjqWXOEATpeKIFb9Z4t2WBUK2iryiXX3lzWwmYWgUL0Ug==}
+    dev: false
+
+  /@rari-capital/solmate/6.0.0:
+    resolution: {integrity: sha512-Xf7mrpjd2caB8EMxCcQakF8DA7HORuTC7vKRj5w3yCcUvHPaStGsICajUrbBkuaUCi55PHjMYKiLtGX2wXG/+w==}
     dev: false
 
   /@reach/auto-id/0.16.0_react-dom@17.0.2+react@17.0.2:

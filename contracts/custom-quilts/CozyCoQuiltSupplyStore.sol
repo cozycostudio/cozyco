@@ -222,7 +222,7 @@ contract CozyCoQuiltSupplyStore is
      * STOCK MANAGEMENT
      *************************************************************************/
 
-    function _storeStock(
+    function _addToStockRoom(
         uint256 tokenId,
         address metadata,
         uint256 tokenType,
@@ -264,7 +264,7 @@ contract CozyCoQuiltSupplyStore is
         );
     }
 
-    function addStock(
+    function stockInSupplies(
         uint256[] memory tokenIds,
         address metadata,
         uint256[] memory tokenTypes,
@@ -275,7 +275,7 @@ contract CozyCoQuiltSupplyStore is
         bool[] memory isMemberExclusives
     ) public onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            _storeStock(
+            _addToStockRoom(
                 tokenIds[i],
                 metadata,
                 tokenTypes[i],
@@ -288,7 +288,7 @@ contract CozyCoQuiltSupplyStore is
         }
     }
 
-    function addBundleStock(
+    function stockInBundledSupplies(
         uint256[] memory tokenIds,
         address metadata,
         uint256[] memory tokenTypes,
@@ -302,7 +302,7 @@ contract CozyCoQuiltSupplyStore is
         uint256[][] memory cumulativeTokenIdWeights
     ) public onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            _storeStock(
+            _addToStockRoom(
                 tokenIds[i],
                 metadata,
                 tokenTypes[i],
@@ -325,7 +325,10 @@ contract CozyCoQuiltSupplyStore is
         }
     }
 
-    function restockItems(uint256[] memory tokenIds, uint256[] memory quantities) public onlyOwner {
+    function restockSupplies(uint256[] memory tokenIds, uint256[] memory quantities)
+        public
+        onlyOwner
+    {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             tokens[tokenIds[i]].quantity += quantities[i];
         }
@@ -404,6 +407,19 @@ contract CozyCoQuiltSupplyStore is
     /**************************************************************************
      * STORE ADMIN
      *************************************************************************/
+
+    function openToPublic() public onlyOwner {
+        storeOpenToPublic = true;
+    }
+
+    function openToMembers() public onlyOwner {
+        storeOpenToMembers = true;
+    }
+
+    function closeStore() public onlyOwner {
+        storeOpenToPublic = false;
+        storeOpenToMembers = false;
+    }
 
     function setQuiltMakerAddress(address addr) public onlyOwner {
         quiltMakerAddress = addr;

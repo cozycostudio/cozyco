@@ -104,10 +104,10 @@ contract QuiltMaker is Ownable, ERC721, IERC1155Receiver {
         return this.onERC1155BatchReceived.selector;
     }
 
-    constructor(address membershipAddr, address supplyStoreAddr)
+    constructor(address supplyStoreAddr, address membershipAddr)
         ERC721("cozy co. custom quilts", "CCCQ")
     {
-        cozyCoMembership = ICozyCoMembership(membershipAddr);
         supplyStore = supplyStoreAddr;
+        cozyCoMembership = ICozyCoMembership(membershipAddr);
     }
 }

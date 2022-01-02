@@ -1,14 +1,14 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
 import { tokens } from "../tokens/custom-quilts/tokens";
 
 describe("Custom quilts", () => {
-  let quiltStoreAdmin: Contract;
-  let quiltStoreStockRoom: Contract;
-  let patchesBlankData: Contract;
+  let cozyCoQuiltSupplyStore: Contract;
   let cozyCoMembership: Contract;
+  let quiltMaker: Contract;
+  let patchesBlankData: Contract;
   let deployer: SignerWithAddress;
   let cozyCo: SignerWithAddress;
   let collaborator: SignerWithAddress;
@@ -24,14 +24,14 @@ describe("Custom quilts", () => {
     );
     cozyCoMembership = await CozyCoMembership.deploy();
 
-    const QuiltStoreStockRoom = await ethers.getContractFactory(
-      "QuiltStoreStockRoom"
+    const CozyCoQuiltSupplyStore = await ethers.getContractFactory(
+      "CozyCoQuiltSupplyStore"
     );
-    quiltStoreStockRoom = await QuiltStoreStockRoom.deploy();
+    cozyCoQuiltSupplyStore = await CozyCoQuiltSupplyStore.deploy();
 
-    const QuiltStoreAdmin = await ethers.getContractFactory("QuiltStoreAdmin");
-    quiltStoreAdmin = await QuiltStoreAdmin.deploy(
-      quiltStoreStockRoom.address,
+    const QuiltMaker = await ethers.getContractFactory("QuiltMaker");
+    quiltMaker = await QuiltMaker.deploy(
+      cozyCoQuiltSupplyStore.address,
       cozyCoMembership.address
     );
 
@@ -40,21 +40,23 @@ describe("Custom quilts", () => {
     );
     patchesBlankData = await PatchesBlankData.deploy();
 
-    await quiltStoreStockRoom.setStoreAdmin(quiltStoreAdmin.address);
-    await quiltStoreAdmin.openStoreForMembers();
-    await quiltStoreAdmin.openStoreForPublic();
+    await cozyCoQuiltSupplyStore.setQuiltMakerAddress(quiltMaker.address);
+    await cozyCoQuiltSupplyStore.openToPublic();
+    await cozyCoQuiltSupplyStore.openToMembers();
   });
 
   describe("QuiltStoreAdmin", () => {
     describe("Purchasing", () => {
       beforeEach(async () => {
-        await quiltStoreAdmin.addStock(
+        await cozyCoQuiltSupplyStore.stockInSupplies(
           tokens.ids(),
+          patchesBlankData.address,
+          tokens.tokenTypes(),
           tokens.prices(),
           tokens.memberPrices(),
-          patchesBlankData.address,
           tokens.quantities(),
-          tokens.storageIndexes()
+          tokens.metadataTokenAtIndexes(),
+          tokens.memberExclusives()
         );
       });
 
@@ -67,50 +69,46 @@ describe("Custom quilts", () => {
         const totalPrice = tokens.getTotalPriceForPurchase(ids, amounts);
 
         expect(
-          await quiltStoreAdmin
+          await cozyCoQuiltSupplyStore
             .connect(customerPublic)
-            .purchaseTokens(ids, amounts, {
+            .purchaseSupplies(ids, amounts, {
               value: totalPrice,
             })
         )
-          .to.emit(quiltStoreStockRoom, "TransferBatch")
+          .to.emit(cozyCoQuiltSupplyStore, "TransferBatch")
           .withArgs(
-            quiltStoreAdmin.address,
+            customerPublic.address,
             ethers.constants.AddressZero,
             customerPublic.address,
             ids,
             amounts
           );
 
-        console.log(
-          await quiltStoreStockRoom.balanceOfBatch(
+        expect(
+          await cozyCoQuiltSupplyStore.balanceOfBatch(
             ids.map((_) => customerPublic.address),
             ids
           )
-        );
+        ).to.eql(amounts.map((i) => BigNumber.from(i)));
 
-        // await quiltStoreAdmin
-        //   .connect(customerPublic)
-        //   .purchaseTokens(ids, amounts, {
-        //     value: totalPrice,
-        //   });
+        await cozyCoQuiltSupplyStore
+          .connect(customerPublic)
+          .purchaseSupplies(ids, amounts, {
+            value: totalPrice,
+          });
 
-        // expect(
-        //   await quiltStoreStockRoom.balanceOfBatch(
-        //     ids.map((_) => addr1.address),
-        //     ids
-        //   )
-        // ).to.eql([
-        //   BigNumber.from(tokens[1].maxQuantity),
-        //   BigNumber.from(tokens[2].maxQuantity),
-        //   BigNumber.from(tokens[3].maxQuantity),
-        // ]);
+        expect(
+          await cozyCoQuiltSupplyStore.balanceOfBatch(
+            ids.map((_) => customerPublic.address),
+            ids
+          )
+        ).to.eql(amounts.map((i, idx) => BigNumber.from(i + amounts[idx])));
       });
     });
   });
 });
 
-// describe.skip("QuiltStoreStockRoom contract", () => {
+// describe.skip("CozyCoQuiltSupplyStore contract", () => {
 //   let contract: Contract;
 //   let patchesBlankData: Contract;
 //   let deployer: SignerWithAddress;
@@ -127,10 +125,10 @@ describe("Custom quilts", () => {
 //       "PatchesBlankData"
 //     );
 //     patchesBlankData = await PatchesBlankData.deploy();
-//     const QuiltStoreStockRoom = await ethers.getContractFactory(
-//       "QuiltStoreStockRoom"
+//     const CozyCoQuiltSupplyStore = await ethers.getContractFactory(
+//       "CozyCoQuiltSupplyStore"
 //     );
-//     contract = await QuiltStoreStockRoom.deploy();
+//     contract = await CozyCoQuiltSupplyStore.deploy();
 //     const QuiltAssembly = await ethers.getContractFactory("QuiltAssembly");
 //     const customQuilts = await QuiltAssembly.deploy(
 //       cozyCoMembership.address,
@@ -342,7 +340,7 @@ describe("Custom quilts", () => {
 
 // describe.skip("QuiltAssembly contract", () => {
 //   let contract: Contract;
-//   let quiltStoreStockRoom: Contract;
+//   let cozyCoQuiltSupplyStore: Contract;
 //   let deployer: SignerWithAddress;
 //   let addr1: SignerWithAddress;
 //   let addr2: SignerWithAddress;
@@ -357,19 +355,19 @@ describe("Custom quilts", () => {
 //       "PatchesBlankData"
 //     );
 //     const patchesBlankData = await PatchesBlankData.deploy();
-//     const QuiltStoreStockRoom = await ethers.getContractFactory(
-//       "QuiltStoreStockRoom"
+//     const CozyCoQuiltSupplyStore = await ethers.getContractFactory(
+//       "CozyCoQuiltSupplyStore"
 //     );
-//     quiltStoreStockRoom = await QuiltStoreStockRoom.deploy();
+//     cozyCoQuiltSupplyStore = await CozyCoQuiltSupplyStore.deploy();
 //     const QuiltAssembly = await ethers.getContractFactory("QuiltAssembly");
 //     contract = await QuiltAssembly.deploy(
 //       cozyCoMembership.address,
-//       quiltStoreStockRoom.address
+//       cozyCoQuiltSupplyStore.address
 //     );
-//     await quiltStoreStockRoom.setCustomQuiltsAddress(contract.address);
-//     await quiltStoreStockRoom.setMemberOpenState(true);
-//     await quiltStoreStockRoom.setPublicOpenState(true);
-//     await quiltStoreStockRoom.setTokens(
+//     await cozyCoQuiltSupplyStore.setCustomQuiltsAddress(contract.address);
+//     await cozyCoQuiltSupplyStore.setMemberOpenState(true);
+//     await cozyCoQuiltSupplyStore.setPublicOpenState(true);
+//     await cozyCoQuiltSupplyStore.setTokens(
 //       getIds("patch"),
 //       patchesBlankData.address,
 //       getMetadataIndexes("patch"),
@@ -383,22 +381,22 @@ describe("Custom quilts", () => {
 //       tokens[3].maxQuantity,
 //     ];
 //     const totalPrice = getTotalPriceForPurchase("patch", ids, amounts);
-//     await quiltStoreStockRoom.connect(addr1).purchaseTokens(ids, amounts, {
+//     await cozyCoQuiltSupplyStore.connect(addr1).purchaseTokens(ids, amounts, {
 //       value: totalPrice,
 //     });
 //   });
 
 //   it("should create a quilt", async () => {
 //     const price = await contract.creationCost();
-//     console.log(await quiltStoreStockRoom.balanceOf(addr1.address, 1));
-//     console.log(await quiltStoreStockRoom.balanceOf(addr1.address, 2));
-//     console.log(await quiltStoreStockRoom.balanceOf(addr1.address, 3));
+//     console.log(await cozyCoQuiltSupplyStore.balanceOf(addr1.address, 1));
+//     console.log(await cozyCoQuiltSupplyStore.balanceOf(addr1.address, 2));
+//     console.log(await cozyCoQuiltSupplyStore.balanceOf(addr1.address, 3));
 
 //     await contract.connect(addr1).createQuilt([1, 2, 3], { value: price });
 
-//     console.log(await quiltStoreStockRoom.balanceOf(addr1.address, 1));
-//     console.log(await quiltStoreStockRoom.balanceOf(addr1.address, 2));
-//     console.log(await quiltStoreStockRoom.balanceOf(addr1.address, 3));
+//     console.log(await cozyCoQuiltSupplyStore.balanceOf(addr1.address, 1));
+//     console.log(await cozyCoQuiltSupplyStore.balanceOf(addr1.address, 2));
+//     console.log(await cozyCoQuiltSupplyStore.balanceOf(addr1.address, 3));
 
 //     expect(true).to.be.true;
 
