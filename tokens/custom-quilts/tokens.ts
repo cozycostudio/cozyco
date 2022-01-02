@@ -21,7 +21,7 @@ interface Token {
 type TokenRecord = Record<number, Token>;
 
 export const tokenData: TokenRecord = {
-  9000: {
+  100: {
     metadata: "",
     tokenType: TokenTypes.Patch,
     price: ethers.utils.parseEther("0.01"),
@@ -30,7 +30,7 @@ export const tokenData: TokenRecord = {
     metadataTokenAtIndex: 0,
     memberExclusive: false,
   },
-  9001: {
+  101: {
     metadata: "",
     tokenType: TokenTypes.Patch,
     price: ethers.utils.parseEther("0.01"),
@@ -39,7 +39,7 @@ export const tokenData: TokenRecord = {
     metadataTokenAtIndex: 1,
     memberExclusive: false,
   },
-  9002: {
+  102: {
     metadata: "",
     tokenType: TokenTypes.Patch,
     price: ethers.utils.parseEther("0.01"),
@@ -48,7 +48,7 @@ export const tokenData: TokenRecord = {
     metadataTokenAtIndex: 2,
     memberExclusive: false,
   },
-  9003: {
+  103: {
     metadata: "",
     tokenType: TokenTypes.Patch,
     price: ethers.utils.parseEther("0.02"),
@@ -57,7 +57,7 @@ export const tokenData: TokenRecord = {
     metadataTokenAtIndex: 3,
     memberExclusive: false,
   },
-  9004: {
+  104: {
     metadata: "",
     tokenType: TokenTypes.Patch,
     price: ethers.utils.parseEther("0.02"),
@@ -66,37 +66,49 @@ export const tokenData: TokenRecord = {
     metadataTokenAtIndex: 4,
     memberExclusive: false,
   },
+  105: {
+    metadata: "",
+    tokenType: TokenTypes.Patch,
+    price: ethers.utils.parseEther("0.02"),
+    memberPrice: ethers.utils.parseEther("0.016"),
+    quantity: 10,
+    metadataTokenAtIndex: 5,
+    memberExclusive: true,
+  },
 };
 
 interface TokenBundle extends Token {
   bundleSize: number;
   tokenIdsInBundle: number[];
+  cumulativeTokenIdWeights: number[];
 }
 
 type TokenBundleRecord = Record<number, TokenBundle>;
 
 export const tokenBundleData: TokenBundleRecord = {
-  9005: {
+  205: {
     metadata: "",
     tokenType: TokenTypes.Bundle,
     price: ethers.utils.parseEther("0.1"),
     memberPrice: ethers.utils.parseEther("0.075"),
     quantity: 10,
     metadataTokenAtIndex: 0,
-    bundleSize: 5,
-    tokenIdsInBundle: [9000, 9001, 9002],
     memberExclusive: false,
+    bundleSize: 5,
+    tokenIdsInBundle: [100, 101, 102],
+    cumulativeTokenIdWeights: [100, 125, 130],
   },
-  9006: {
+  206: {
     metadata: "",
     tokenType: TokenTypes.Bundle,
     price: ethers.utils.parseEther("0.2"),
     memberPrice: ethers.utils.parseEther("0.15"),
     quantity: 20,
     metadataTokenAtIndex: 1,
-    bundleSize: 10,
-    tokenIdsInBundle: [9003, 9004],
     memberExclusive: false,
+    bundleSize: 10,
+    tokenIdsInBundle: [103, 104],
+    cumulativeTokenIdWeights: [100, 150],
   },
 };
 
@@ -112,6 +124,7 @@ export const tokens = {
   memberPrice: (id: number) => tokenData[id].memberPrice,
   quantities: () =>
     Object.entries(tokenData).map(([_, { quantity }]) => quantity),
+  quantity: (id: number) => tokenData[id].quantity,
   metadataTokenAtIndexes: () =>
     Object.entries(tokenData).map(
       ([_, { metadataTokenAtIndex }]) => metadataTokenAtIndex
@@ -125,6 +138,12 @@ export const tokens = {
   getTotalPriceForPurchase: (ids: number[], amounts: number[]) => {
     return ids.reduce((sum: ethers.BigNumber, id, index) => {
       const price = tokenData[id].price.mul(amounts[index]);
+      return price.add(sum);
+    }, ethers.BigNumber.from(0));
+  },
+  getTotalMemberPriceForPurchase: (ids: number[], amounts: number[]) => {
+    return ids.reduce((sum: ethers.BigNumber, id, index) => {
+      const price = tokenData[id].memberPrice.mul(amounts[index]);
       return price.add(sum);
     }, ethers.BigNumber.from(0));
   },
@@ -142,6 +161,7 @@ export const tokenBundles = {
   memberPrice: (id: number) => tokenBundleData[id].memberPrice,
   quantities: () =>
     Object.entries(tokenBundleData).map(([_, { quantity }]) => quantity),
+  quantity: (id: number) => tokenBundleData[id].quantity,
   metadataTokenAtIndexes: () =>
     Object.entries(tokenBundleData).map(
       ([_, { metadataTokenAtIndex }]) => metadataTokenAtIndex
@@ -161,6 +181,12 @@ export const tokenBundles = {
       ([_, { tokenIdsInBundle }]) => tokenIdsInBundle
     ),
   tokenIdsInBundle: (id: number) => tokenBundleData[id].tokenIdsInBundle,
+  allCumulativeTokenIdWeights: () =>
+    Object.entries(tokenBundleData).map(
+      ([_, { cumulativeTokenIdWeights }]) => cumulativeTokenIdWeights
+    ),
+  cumulativeTokenIdWeights: (id: number) =>
+    tokenBundleData[id].cumulativeTokenIdWeights,
   getTotalPriceForPurchase: (ids: number[], amounts: number[]) => {
     return ids.reduce((sum: ethers.BigNumber, id, index) => {
       const price = tokenBundleData[id].price.mul(amounts[index]);

@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import {ERC1155, IERC1155} from "../tokens/ERC1155/ERC1155.sol";
+import "@rari-capital/solmate/src/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
 import "../utils/Random.sol";
-import "../membership/ICozyCoMembership.sol";
+import "../utils/Strings.sol";
 import "./ISuppliesMetadata.sol";
 import "./ISupplyStore.sol";
 import "./ICozyCoQuiltSupplyStore.sol";
 
 contract CozyCoQuiltSupplyStore is
     Ownable,
-    ERC1155Burnable,
+    ERC1155,
     ReentrancyGuard,
     ISupplyStore,
     ICozyCoQuiltSupplyStore
@@ -24,9 +22,9 @@ contract CozyCoQuiltSupplyStore is
      * STORAGE
      *************************************************************************/
 
-    /** Proxies **/
+    /** Related contracts **/
     address public quiltMakerAddress;
-    ICozyCoMembership private cozyCoMembership;
+    IERC1155 private cozyCoMembership;
     mapping(address => bool) private approvedMinterContracts;
 
     /** Opening hours **/
@@ -62,6 +60,8 @@ contract CozyCoQuiltSupplyStore is
     mapping(address => mapping(uint256 => bool)) private lockTokenForCreatorWithdraw;
     mapping(address => uint256) public releasedCreatorBalances;
 
+    event CreatorPaid(address indexed creator, uint256 indexed amount);
+
     /**************************************************************************
      * ERRORS
      *************************************************************************/
@@ -78,58 +78,25 @@ contract CozyCoQuiltSupplyStore is
     error ZeroBalance();
 
     /**************************************************************************
-     * MODIFIERS
-     *************************************************************************/
-
-    modifier onlyWhileOpenToMembers() {
-        if (!storeOpenToMembers) revert StoreClosed();
-        _;
-    }
-
-    modifier onlyWhileOpenToPublic() {
-        if (!storeOpenToPublic) revert StoreClosed();
-        _;
-    }
-
-    modifier onlyMember(uint256 membershipId) {
-        if (cozyCoMembership.balanceOf(_msgSender(), membershipId) < 1) revert NotAuthorized();
-        _;
-    }
-
-    modifier onlyValidTokenIdsAndAmounts(uint256[] memory tokenIds, uint256[] memory amounts) {
-        if (tokenIds.length != amounts.length) revert InvalidConfiguration();
-        _;
-    }
-
-    modifier onlyWhileInStock(uint256[] memory tokenIds, uint256[] memory amounts) {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            if (stockSoldToPublic[tokenIds[i]] + amounts[i] > tokens[tokenIds[i]].quantity)
-                revert OutOfStock();
-        }
-        _;
-    }
-
-    modifier onlyApprovedMinterContract() {
-        if (!approvedMinterContracts[msg.sender]) revert NotAuthorized();
-        _;
-    }
-
-    /**************************************************************************
      * PURCHASING SUPPLIES
      *************************************************************************/
 
-    function purchaseSupplies(uint256[] memory tokenIds, uint256[] memory amounts)
-        public
-        payable
-        nonReentrant
-        onlyWhileOpenToPublic
-        onlyValidTokenIdsAndAmounts(tokenIds, amounts)
-    {
+    function _stockCheck(uint256 tokenId, uint256 amount) internal view {
+        if (
+            stockSoldToPublic[tokenId] + stockSoldToMembers[tokenId] + amount >
+            tokens[tokenId].quantity
+        ) revert OutOfStock();
+    }
+
+    function purchaseSupplies(uint256[] memory tokenIds, uint256[] memory amounts) public payable {
+        if (!storeOpenToPublic) revert StoreClosed();
+        if (tokenIds.length != amounts.length) revert InvalidConfiguration();
         uint256 totalPrice;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             if (tokens[tokenIds[i]].memberExclusive) revert MemberExclusive();
-            totalPrice += tokens[tokenIds[i]].price * amounts[i];
+            _stockCheck(tokenIds[i], amounts[i]);
             stockSoldToPublic[tokenIds[i]] += amounts[i];
+            totalPrice += tokens[tokenIds[i]].price * amounts[i];
         }
         if (msg.value != totalPrice) revert IncorrectPaymentAmount();
         _mintBatch(_msgSender(), tokenIds, amounts, "");
@@ -139,17 +106,15 @@ contract CozyCoQuiltSupplyStore is
         uint256 membershipId,
         uint256[] memory tokenIds,
         uint256[] memory amounts
-    )
-        public
-        payable
-        onlyMember(membershipId)
-        onlyWhileOpenToMembers
-        onlyValidTokenIdsAndAmounts(tokenIds, amounts)
-    {
+    ) public payable {
+        if (!storeOpenToMembers) revert StoreClosed();
+        if (cozyCoMembership.balanceOf(_msgSender(), membershipId) == 0) revert NotAuthorized();
+        if (tokenIds.length != amounts.length) revert InvalidConfiguration();
         uint256 totalPrice;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            totalPrice += tokens[tokenIds[i]].memberPrice * amounts[i];
+            _stockCheck(tokenIds[i], amounts[i]);
             stockSoldToMembers[tokenIds[i]] += amounts[i];
+            totalPrice += tokens[tokenIds[i]].memberPrice * amounts[i];
         }
         if (msg.value != totalPrice) revert IncorrectPaymentAmount();
         _mintBatch(_msgSender(), tokenIds, amounts, "");
@@ -159,17 +124,14 @@ contract CozyCoQuiltSupplyStore is
         address customer,
         uint256[] memory tokenIds,
         uint256[] memory amounts
-    )
-        public
-        payable
-        override
-        onlyApprovedMinterContract
-        onlyValidTokenIdsAndAmounts(tokenIds, amounts)
-    {
+    ) public payable override {
+        if (!approvedMinterContracts[msg.sender]) revert NotAuthorized();
+        if (tokenIds.length != amounts.length) revert InvalidConfiguration();
         uint256 totalPrice;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            totalPrice += tokens[tokenIds[i]].price * amounts[i];
+            _stockCheck(tokenIds[i], amounts[i]);
             stockSoldToPublic[tokenIds[i]] += amounts[i];
+            totalPrice += tokens[tokenIds[i]].price * amounts[i];
         }
         if (msg.value != totalPrice) revert IncorrectPaymentAmount();
         _mintBatch(customer, tokenIds, amounts, "");
@@ -179,16 +141,18 @@ contract CozyCoQuiltSupplyStore is
      * OPEN BUNDLES
      *************************************************************************/
 
-    function openSuppliesBundles(uint256[] memory tokenIds, uint256[] memory amounts) public {
-        // `_burnBatch` checks if the from address has tokens and reverts if not
-        // so we don't need to check any balances here which saves some gas
-        _burnBatch(_msgSender(), tokenIds, amounts);
-
+    function openSuppliesBundles(uint256[] memory tokenIds, uint256[] memory amounts)
+        public
+        nonReentrant
+    {
         // Work out how many new tokens to mint from the burned bundles
         uint256 toMintCount;
         for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (_balances[_msgSender()][tokenIds[i]] == 0) revert ZeroBalance();
             toMintCount += bundles[tokenIds[i]].size * amounts[i];
         }
+
+        _burnBatch(_msgSender(), tokenIds, amounts);
 
         // Get the unbundled tokenIds so we can mint them in a sec
         uint256[] memory unbundledTokenIds = new uint256[](toMintCount);
@@ -197,11 +161,11 @@ contract CozyCoQuiltSupplyStore is
         for (uint256 i = 0; i < tokenIds.length; i++) {
             for (uint256 j = 0; j < bundles[tokenIds[i]].size * amounts[i]; j++) {
                 uint256[] memory randWeights = bundles[tokenIds[i]].cumulativeTokenIdWeights;
-                uint256 rng = Random.prng("B", Strings.toString(idx), _msgSender()) %
+                uint256 rng = Random.prng("B", Strings.uintToString(idx), _msgSender()) %
                     randWeights[randWeights.length - 1];
                 uint256 randIdx;
                 for (uint256 k = 0; k < randWeights.length; k++) {
-                    if (k > rng) {
+                    if (randWeights[k] > rng) {
                         randIdx = k;
                         break;
                     }
@@ -248,8 +212,8 @@ contract CozyCoQuiltSupplyStore is
         stockSoldToMembers[tokenId] = 1;
 
         /**
-          2. The second is adding three to the stored quantity. This is to include the two
-            we just added, and an extra one so we can use a LT check instead of a LTE check when
+          2. The second is adding two to the stored quantity. This is to include the two
+            we just added so we can use a GT check instead of a GTE check when
             seeing if there's still stock left. 
         */
 
@@ -258,7 +222,7 @@ contract CozyCoQuiltSupplyStore is
             tokenType,
             price,
             memberPrice,
-            quantity + 3,
+            quantity + 2,
             metadataTokenAtIndex,
             memberExclusive
         );
@@ -302,6 +266,10 @@ contract CozyCoQuiltSupplyStore is
         uint256[][] memory cumulativeTokenIdWeights
     ) public onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (tokenIdsInBundle[i].length != cumulativeTokenIdWeights[i].length) {
+                revert InvalidConfiguration();
+            }
+
             _addToStockRoom(
                 tokenIds[i],
                 metadata,
@@ -312,10 +280,6 @@ contract CozyCoQuiltSupplyStore is
                 metadataTokenAtIndexes[i],
                 isMemberExclusives[i]
             );
-
-            if (tokenIdsInBundle[i].length != cumulativeTokenIdWeights[i].length) {
-                revert InvalidConfiguration();
-            }
 
             bundles[tokenIds[i]] = Bundle(
                 bundleSizes[i],
@@ -385,8 +349,8 @@ contract CozyCoQuiltSupplyStore is
     }
 
     function getItemMaxStock(uint256 tokenId) public view override returns (uint256 stock) {
-        // Subtract the three we added for gas savings when creating the token
-        stock = tokens[tokenId].quantity - 3;
+        // Subtract the two we added for gas savings when creating the token
+        stock = tokens[tokenId].quantity - 2;
     }
 
     function getUnitsSold(uint256 tokenId)
@@ -399,8 +363,9 @@ contract CozyCoQuiltSupplyStore is
             uint256 total
         )
     {
-        toPublic = stockSoldToPublic[tokenId];
-        toMembers = stockSoldToPublic[tokenId];
+        // Subtract the amounts we added for gas savings when creating the token
+        toPublic = stockSoldToPublic[tokenId] - 1;
+        toMembers = stockSoldToMembers[tokenId] - 1;
         total = toPublic + toMembers;
     }
 
@@ -432,9 +397,7 @@ contract CozyCoQuiltSupplyStore is
         returns (bool isApproved)
     {
         // Approve the admin contract by default
-        if (operator == quiltMakerAddress) {
-            return true;
-        }
+        if (operator == quiltMakerAddress) return true;
         return super.isApprovedForAll(owner, operator);
     }
 
@@ -457,6 +420,26 @@ contract CozyCoQuiltSupplyStore is
         if (totalShares != 10000) revert InvalidConfiguration();
     }
 
+    function getCreatorShareForTokenId(address creator, uint256 tokenId)
+        public
+        view
+        returns (uint256 share)
+    {
+        share = creatorShares[creator][tokenId];
+    }
+
+    function getCreatorShareForTokenIds(address creator, uint256[] memory tokenIds)
+        public
+        view
+        returns (uint256[] memory shares)
+    {
+        uint256[] memory _shares = new uint256[](tokenIds.length);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            _shares[i] = creatorShares[creator][tokenIds[i]];
+        }
+        shares = _shares;
+    }
+
     // Not really meant to be called directly by an end user, but batching by
     // tokenId prevents not being able to access funds if the list of tokenIds
     // gets too long. Because it loops over each tokenId to get the balance, if
@@ -476,8 +459,9 @@ contract CozyCoQuiltSupplyStore is
             lockTokenForCreatorWithdraw[msg.sender][tokenId] = true;
 
             // Calculate sales figures for this token and add it to the pending balance
-            uint256 totalPaymentForSales = (stockSoldToPublic[tokenId] * tokens[tokenId].price) +
-                (stockSoldToMembers[tokenId] * tokens[tokenId].memberPrice);
+            (uint256 publicSales, uint256 memberSales, ) = getUnitsSold(tokenId);
+            uint256 totalPaymentForSales = (publicSales * tokens[tokenId].price) +
+                (memberSales * tokens[tokenId].memberPrice);
             balance += (totalPaymentForSales * creatorShares[msg.sender][tokenId]) / 10000;
         }
 
@@ -492,21 +476,15 @@ contract CozyCoQuiltSupplyStore is
         // Send the payment
         (bool success, ) = msg.sender.call{value: balance}(new bytes(0));
         if (!success) revert TransferFailed();
+
+        emit CreatorPaid(msg.sender, balance);
     }
 
     /**************************************************************************
      * STANDARDS
      *************************************************************************/
 
-    constructor() ERC1155("") Ownable() {}
-
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC1155)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
+    constructor(address membershipAddr) ERC1155() Ownable() {
+        cozyCoMembership = IERC1155(membershipAddr);
     }
 }
