@@ -9,7 +9,14 @@ import "../utils/Random.sol";
 import "../utils/Strings.sol";
 import "./ISuppliesMetadata.sol";
 import "./ISupplyStore.sol";
-import "./ICozyCoQuiltSupplyStore.sol";
+
+interface ICozyCoQuiltSupplyStore {
+    function purchaseSuppliesFromOtherContract(
+        address customer,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) external payable;
+}
 
 contract CozyCoQuiltSupplyStore is
     Ownable,

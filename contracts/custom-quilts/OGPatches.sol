@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "./OGQuiltGenerator.sol";
-import "./ICozyCoQuiltSupplyStore.sol";
+import {ICozyCoQuiltSupplyStore} from "./CozyCoQuiltSupplyStore.sol";
 
 contract OGPatches {
     address public cozyCoQuiltSupplyStore;

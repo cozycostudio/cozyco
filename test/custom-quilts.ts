@@ -8,6 +8,7 @@ describe("Custom quilts", () => {
   let cozyCoQuiltSupplyStore: Contract;
   let cozyCoMembership: Contract;
   let quiltMaker: Contract;
+  let quiltMakerRenderer: Contract;
   let patchesBlankData: Contract;
   let deployer: SignerWithAddress;
   let cozyCo: SignerWithAddress;
@@ -36,6 +37,11 @@ describe("Custom quilts", () => {
       cozyCoQuiltSupplyStore.address,
       cozyCoMembership.address
     );
+
+    const QuiltMakerRenderer = await ethers.getContractFactory(
+      "QuiltMakerRenderer"
+    );
+    quiltMakerRenderer = await QuiltMakerRenderer.deploy();
 
     const PatchesBlankData = await ethers.getContractFactory(
       "PatchesBlankData"
@@ -429,6 +435,52 @@ describe("Custom quilts", () => {
           .to.emit(cozyCoQuiltSupplyStore, "CreatorPaid")
           .withArgs(collaborator.address, totalPrice.mul(9000).div(10000));
       });
+    });
+  });
+
+  describe.only("QuiltMakerRenderer", () => {
+    it("should validate a layout", async () => {
+      const patches = [
+        [0, 0, 1, 1],
+        [1, 0, 1, 1],
+        [2, 0, 1, 1],
+        [3, 0, 1, 1],
+        // [4, 0, 1, 1],
+        // [5, 0, 1, 1],
+        [0, 1, 1, 1],
+        [1, 1, 1, 1],
+        [2, 1, 1, 1],
+        [3, 1, 1, 1],
+        // [4, 1, 1, 1],
+        // [5, 1, 1, 1],
+        [0, 2, 1, 1],
+        [1, 2, 1, 1],
+        [2, 2, 1, 1],
+        [3, 2, 1, 1],
+        // [4, 2, 1, 1],
+        // [5, 2, 1, 1],
+        [0, 3, 1, 1],
+        [1, 3, 1, 1],
+        [2, 3, 1, 1],
+        [3, 3, 1, 1],
+        // [4, 3, 1, 1],
+        // [5, 3, 1, 1],
+        // [0, 4, 1, 1],
+        // [1, 4, 1, 1],
+        // [2, 4, 1, 1],
+        // [3, 4, 1, 1],
+        // [4, 4, 1, 1],
+        // [5, 4, 1, 1],
+        // [0, 5, 1, 1],
+        // [1, 5, 1, 1],
+        // [2, 5, 1, 1],
+        // [3, 5, 1, 1],
+        // [4, 5, 1, 1],
+        // [5, 5, 1, 1],
+      ];
+      const size = [4, 4];
+      expect(await quiltMakerRenderer.validatePatchLayout(size, patches)).to.be
+        .true;
     });
   });
 });
