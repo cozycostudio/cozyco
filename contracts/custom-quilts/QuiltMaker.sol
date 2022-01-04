@@ -16,17 +16,13 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
     mapping(uint256 => uint256[]) private suppliesForQuilt;
     mapping(uint256 => uint256[4][]) private suppliesLayout; // [x, y, w, h]
 
+    mapping(uint256 => uint256) public maxStock;
+
     error IncorrectPrice();
     error InvalidLayout();
 
-    function createQuilt(
-        uint256[2] memory size,
-        uint256[4][] memory patches,
-        uint256[4][] memory supplyLayouts
-    ) public payable {
-        // Check if the patch layout is valid for a quilt
-        if (renderer.validatePatchLayout(size, patches)) revert InvalidLayout();
-
+    function createQuilt(uint256 size, uint256[] memory patchLayouts) public payable {
+        if (!renderer.validatePatchLayout(size, patchLayouts)) revert InvalidLayout();
         if (msg.value != creationCost) revert IncorrectPrice();
         // TODO: add membership discounts
 
@@ -46,10 +42,14 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         // );
 
         // Mint the quilt
-        _safeMint(_msgSender(), nextTokenId);
+        // _safeMint(_msgSender(), nextTokenId);
         // suppliesForQuilt[nextTokenId] = supplyIds;
-        suppliesLayout[nextTokenId] = supplyLayouts;
-        nextTokenId += 1;
+        // suppliesLayout[nextTokenId] = supplyLayouts;
+        // nextTokenId += 1;
+    }
+
+    function getMaxStock(uint256 w, uint256 h) public view returns (uint256 stock) {
+        stock = maxStock[(uint256(uint128(w)) << 128) | uint128(h)];
     }
 
     // function recycleQuilt(uint256 tokenId, uint256[] memory newPatchIds)
@@ -78,12 +78,39 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         total = nextTokenId - 1;
     }
 
-    constructor(address supplyStoreAddr, address membershipAddr)
-        ERC721("cozy co. custom quilts", "CCCQ")
-    {
+    constructor(
+        address supplyStoreAddr,
+        address membershipAddr,
+        address rendererAddr
+    ) ERC721("cozy co. custom quilts", "CCCQ") {
         supplyStore = supplyStoreAddr;
         cozyCoMembership = IERC1155(membershipAddr);
-        // renderer = IQuiltMakerRenderer(rendererAddr);
+        renderer = IQuiltMakerRenderer(rendererAddr);
+
+        maxStock[(uint256(uint128(2)) << 128) | uint128(2)] = 50;
+
+        maxStock[(uint256(uint128(2)) << 128) | uint128(3)] = 200;
+        maxStock[(uint256(uint128(2)) << 128) | uint128(4)] = 200;
+        maxStock[(uint256(uint128(4)) << 128) | uint128(2)] = 200;
+        maxStock[(uint256(uint128(3)) << 128) | uint128(2)] = 200;
+
+        maxStock[(uint256(uint128(3)) << 128) | uint128(4)] = 800;
+        maxStock[(uint256(uint128(3)) << 128) | uint128(3)] = 800;
+        maxStock[(uint256(uint128(4)) << 128) | uint128(3)] = 800;
+        maxStock[(uint256(uint128(4)) << 128) | uint128(4)] = 800;
+
+        maxStock[(uint256(uint128(3)) << 128) | uint128(5)] = 800;
+        maxStock[(uint256(uint128(4)) << 128) | uint128(5)] = 800;
+        maxStock[(uint256(uint128(5)) << 128) | uint128(5)] = 800;
+        maxStock[(uint256(uint128(5)) << 128) | uint128(4)] = 800;
+        maxStock[(uint256(uint128(5)) << 128) | uint128(3)] = 800;
+
+        maxStock[(uint256(uint128(4)) << 128) | uint128(6)] = 200;
+        maxStock[(uint256(uint128(5)) << 128) | uint128(6)] = 200;
+        maxStock[(uint256(uint128(6)) << 128) | uint128(5)] = 200;
+        maxStock[(uint256(uint128(6)) << 128) | uint128(4)] = 200;
+
+        maxStock[(uint256(uint128(6)) << 128) | uint128(6)] = 50;
     }
 
     function onERC1155Received(

@@ -32,16 +32,17 @@ describe("Custom quilts", () => {
       cozyCoMembership.address
     );
 
-    const QuiltMaker = await ethers.getContractFactory("QuiltMaker");
-    quiltMaker = await QuiltMaker.deploy(
-      cozyCoQuiltSupplyStore.address,
-      cozyCoMembership.address
-    );
-
     const QuiltMakerRenderer = await ethers.getContractFactory(
       "QuiltMakerRenderer"
     );
     quiltMakerRenderer = await QuiltMakerRenderer.deploy();
+
+    const QuiltMaker = await ethers.getContractFactory("QuiltMaker");
+    quiltMaker = await QuiltMaker.deploy(
+      cozyCoQuiltSupplyStore.address,
+      cozyCoMembership.address,
+      quiltMakerRenderer.address
+    );
 
     const PatchesBlankData = await ethers.getContractFactory(
       "PatchesBlankData"
@@ -438,47 +439,113 @@ describe("Custom quilts", () => {
     });
   });
 
-  describe.only("QuiltMakerRenderer", () => {
+  describe.only("QuiltMaker", () => {
+    it.skip("should validate a layout", async () => {
+      const patches = [
+        [0, 0, 1, 1],
+        [1, 0, 1, 1],
+        [2, 0, 1, 1],
+        [3, 0, 1, 1],
+        [4, 0, 1, 1],
+        [5, 0, 1, 1],
+        [0, 1, 1, 1],
+        [1, 1, 1, 1],
+        [2, 1, 1, 1],
+        [3, 1, 1, 1],
+        [4, 1, 1, 1],
+        [5, 1, 1, 1],
+        [0, 2, 1, 1],
+        [1, 2, 1, 1],
+        [2, 2, 1, 1],
+        [3, 2, 1, 1],
+        [4, 2, 1, 1],
+        [5, 2, 1, 1],
+        [0, 3, 1, 1],
+        [1, 3, 1, 1],
+        [2, 3, 1, 1],
+        [3, 3, 1, 1],
+        [4, 3, 1, 1],
+        [5, 3, 1, 1],
+        [0, 4, 1, 1],
+        [1, 4, 1, 1],
+        [2, 4, 1, 1],
+        [3, 4, 1, 1],
+        [4, 4, 1, 1],
+        [5, 4, 1, 1],
+        [0, 5, 1, 1],
+        [1, 5, 1, 1],
+        [2, 5, 1, 1],
+        [3, 5, 1, 1],
+        [4, 5, 1, 1],
+        [5, 5, 1, 1],
+      ].map(([x, y, w, h]) => {
+        const xBit = BigNumber.from(x);
+        return xBit
+          .or(BigNumber.from(y).shl(64))
+          .or(BigNumber.from(w).shl(128))
+          .or(BigNumber.from(h).shl(192));
+      });
+      const w = BigNumber.from(6);
+      const h = BigNumber.from(6).shl(128);
+      const size = w.or(h);
+      await quiltMaker.createQuilt(size, patches, { value: 0 });
+      expect(true).to.be.true;
+    });
+
+    it("should set up the max stock", async () => {
+      expect(await quiltMaker.getMaxStock(2, 2)).to.equal(50);
+    });
+  });
+
+  describe.skip("QuiltMakerRenderer", () => {
     it("should validate a layout", async () => {
       const patches = [
         [0, 0, 1, 1],
         [1, 0, 1, 1],
         [2, 0, 1, 1],
         [3, 0, 1, 1],
-        // [4, 0, 1, 1],
-        // [5, 0, 1, 1],
+        [4, 0, 1, 1],
+        [5, 0, 1, 1],
         [0, 1, 1, 1],
         [1, 1, 1, 1],
         [2, 1, 1, 1],
         [3, 1, 1, 1],
-        // [4, 1, 1, 1],
-        // [5, 1, 1, 1],
+        [4, 1, 1, 1],
+        [5, 1, 1, 1],
         [0, 2, 1, 1],
         [1, 2, 1, 1],
         [2, 2, 1, 1],
         [3, 2, 1, 1],
-        // [4, 2, 1, 1],
-        // [5, 2, 1, 1],
+        [4, 2, 1, 1],
+        [5, 2, 1, 1],
         [0, 3, 1, 1],
         [1, 3, 1, 1],
         [2, 3, 1, 1],
         [3, 3, 1, 1],
-        // [4, 3, 1, 1],
-        // [5, 3, 1, 1],
-        // [0, 4, 1, 1],
-        // [1, 4, 1, 1],
-        // [2, 4, 1, 1],
-        // [3, 4, 1, 1],
-        // [4, 4, 1, 1],
-        // [5, 4, 1, 1],
-        // [0, 5, 1, 1],
-        // [1, 5, 1, 1],
-        // [2, 5, 1, 1],
-        // [3, 5, 1, 1],
-        // [4, 5, 1, 1],
-        // [5, 5, 1, 1],
-      ];
-      const size = [4, 4];
+        [4, 3, 1, 1],
+        [5, 3, 1, 1],
+        [0, 4, 1, 1],
+        [1, 4, 1, 1],
+        [2, 4, 1, 1],
+        [3, 4, 1, 1],
+        [4, 4, 1, 1],
+        [5, 4, 1, 1],
+        [0, 5, 1, 1],
+        [1, 5, 1, 1],
+        [2, 5, 1, 1],
+        [3, 5, 1, 1],
+        [4, 5, 1, 1],
+        [5, 5, 1, 1],
+      ].map(([x, y, w, h]) => {
+        const xBit = BigNumber.from(x);
+        return xBit
+          .or(BigNumber.from(y).shl(64))
+          .or(BigNumber.from(w).shl(128))
+          .or(BigNumber.from(h).shl(192));
+      });
+      const w = BigNumber.from(6);
+      const h = BigNumber.from(6).shl(128);
+      const size = w.or(h);
       expect(await quiltMakerRenderer.validatePatchLayout(size, patches)).to.be
         .true;
     });
