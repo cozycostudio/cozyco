@@ -39,3 +39,17 @@ QuiltMakerMetadata.sol
 - Rendering logic for tokens
 - Looks up tokens in respective metadata contracts
 - Also takes in a recycle count to add degradation
+
+
+
+// returns a quilt image from supplies
+renderQuilt(size, supplies, degradation)
+
+// returns part between svg tags for each artwork
+getArtPart(artId)
+
+// returns supply image for OpenSea
+getSupplyImage()
+
+// supplies = uint256(type, isCommunity, x, y);
+createQuilt(size, supplyIds, supplies)

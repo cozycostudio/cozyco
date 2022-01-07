@@ -12,17 +12,25 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
     IQuiltMakerRenderer public renderer;
 
     uint256 private nextTokenId = 1;
-    uint256 public creationCost = 0.025 ether;
-    mapping(uint256 => uint256[]) private suppliesForQuilt;
-    mapping(uint256 => uint256[4][]) private suppliesLayout; // [x, y, w, h]
+    uint256 public creationCost = 0.08 ether;
+    uint256 public memberCreationCost = 0.04 ether;
 
+    mapping(uint256 => uint256[]) private suppliesForQuilt;
+    mapping(uint256 => uint256[]) private patchesLayouts;
+    mapping(uint256 => uint256[]) private suppliesLayouts;
     mapping(uint256 => uint256) public maxStock;
 
     error IncorrectPrice();
     error InvalidLayout();
 
-    function createQuilt(uint256 size, uint256[] memory patchLayouts) public payable {
-        if (!renderer.validatePatchLayout(size, patchLayouts)) revert InvalidLayout();
+    function createQuilt(
+        uint256 size,
+        uint256[] memory supplyIds,
+        uint256[] memory patchesLayout,
+        uint256[] memory suppliesLayout
+    ) public payable {
+        // Patches are the only supply that need validating, all other supplies are fine
+        if (!renderer.validatePatchLayout(size, patchesLayout)) revert InvalidLayout();
         if (msg.value != creationCost) revert IncorrectPrice();
         // TODO: add membership discounts
 
@@ -42,14 +50,23 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         // );
 
         // Mint the quilt
-        // _safeMint(_msgSender(), nextTokenId);
-        // suppliesForQuilt[nextTokenId] = supplyIds;
-        // suppliesLayout[nextTokenId] = supplyLayouts;
-        // nextTokenId += 1;
+        _safeMint(_msgSender(), nextTokenId);
+        suppliesForQuilt[nextTokenId] = supplyIds;
+        patchesLayouts[nextTokenId] = patchesLayout;
+        suppliesLayouts[nextTokenId] = suppliesLayout;
+        nextTokenId += 1;
     }
 
     function getMaxStock(uint256 w, uint256 h) public view returns (uint256 stock) {
         stock = maxStock[(uint256(uint128(w)) << 128) | uint128(h)];
+    }
+
+    function setMaxStock(
+        uint256 w,
+        uint256 h,
+        uint256 stock
+    ) public onlyOwner {
+        maxStock[(uint256(uint128(w)) << 128) | uint128(h)] = stock;
     }
 
     // function recycleQuilt(uint256 tokenId, uint256[] memory newPatchIds)
@@ -87,29 +104,26 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         cozyCoMembership = IERC1155(membershipAddr);
         renderer = IQuiltMakerRenderer(rendererAddr);
 
+        // Set the max stock for each initial size. More sizes can be added later
+        // along with increasing the stock amount of each.
         maxStock[(uint256(uint128(2)) << 128) | uint128(2)] = 50;
-
         maxStock[(uint256(uint128(2)) << 128) | uint128(3)] = 200;
         maxStock[(uint256(uint128(2)) << 128) | uint128(4)] = 200;
         maxStock[(uint256(uint128(4)) << 128) | uint128(2)] = 200;
         maxStock[(uint256(uint128(3)) << 128) | uint128(2)] = 200;
-
         maxStock[(uint256(uint128(3)) << 128) | uint128(4)] = 800;
         maxStock[(uint256(uint128(3)) << 128) | uint128(3)] = 800;
         maxStock[(uint256(uint128(4)) << 128) | uint128(3)] = 800;
         maxStock[(uint256(uint128(4)) << 128) | uint128(4)] = 800;
-
         maxStock[(uint256(uint128(3)) << 128) | uint128(5)] = 800;
         maxStock[(uint256(uint128(4)) << 128) | uint128(5)] = 800;
         maxStock[(uint256(uint128(5)) << 128) | uint128(5)] = 800;
         maxStock[(uint256(uint128(5)) << 128) | uint128(4)] = 800;
         maxStock[(uint256(uint128(5)) << 128) | uint128(3)] = 800;
-
         maxStock[(uint256(uint128(4)) << 128) | uint128(6)] = 200;
         maxStock[(uint256(uint128(5)) << 128) | uint128(6)] = 200;
         maxStock[(uint256(uint128(6)) << 128) | uint128(5)] = 200;
         maxStock[(uint256(uint128(6)) << 128) | uint128(4)] = 200;
-
         maxStock[(uint256(uint128(6)) << 128) | uint128(6)] = 50;
     }
 
@@ -133,23 +147,3 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         return ERC1155TokenReceiver.onERC1155BatchReceived.selector;
     }
 }
-
-// uint256 public constant MAX_SUPPLY_2x2 = 50;
-// uint256 public constant MAX_SUPPLY_2x3 = 200;
-// uint256 public constant MAX_SUPPLY_2x4 = 200;
-// uint256 public constant MAX_SUPPLY_4x2 = 200;
-// uint256 public constant MAX_SUPPLY_3x2 = 200;
-// uint256 public constant MAX_SUPPLY_3x4 = 800;
-// uint256 public constant MAX_SUPPLY_3x3 = 800;
-// uint256 public constant MAX_SUPPLY_4x3 = 800;
-// uint256 public constant MAX_SUPPLY_4x4 = 800;
-// uint256 public constant MAX_SUPPLY_3x5 = 400;
-// uint256 public constant MAX_SUPPLY_4x5 = 400;
-// uint256 public constant MAX_SUPPLY_5x5 = 400;
-// uint256 public constant MAX_SUPPLY_5x4 = 400;
-// uint256 public constant MAX_SUPPLY_5x3 = 400;
-// uint256 public constant MAX_SUPPLY_4x6 = 200;
-// uint256 public constant MAX_SUPPLY_5x6 = 200;
-// uint256 public constant MAX_SUPPLY_6x5 = 200;
-// uint256 public constant MAX_SUPPLY_6x4 = 200;
-// uint256 public constant MAX_SUPPLY_6x6 = 50;

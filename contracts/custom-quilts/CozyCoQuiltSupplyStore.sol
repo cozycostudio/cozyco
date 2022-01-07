@@ -45,7 +45,7 @@ contract CozyCoQuiltSupplyStore is
         uint256 price;
         uint256 memberPrice;
         uint256 quantity;
-        uint256 metadataTokenAtIndex;
+        uint256 supplyId;
         bool memberExclusive;
     }
     mapping(uint256 => Token) private tokens;
@@ -200,7 +200,7 @@ contract CozyCoQuiltSupplyStore is
         uint256 price,
         uint256 memberPrice,
         uint256 quantity,
-        uint256 metadataTokenAtIndex,
+        uint256 supplyId,
         bool memberExclusive
     ) internal {
         /**
@@ -230,7 +230,7 @@ contract CozyCoQuiltSupplyStore is
             price,
             memberPrice,
             quantity + 2,
-            metadataTokenAtIndex,
+            supplyId,
             memberExclusive
         );
     }
@@ -242,7 +242,7 @@ contract CozyCoQuiltSupplyStore is
         uint256[] memory prices,
         uint256[] memory memberPrices,
         uint256[] memory quantities,
-        uint256[] memory metadataTokenAtIndexes,
+        uint256[] memory supplyIds,
         bool[] memory isMemberExclusives
     ) public onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -253,7 +253,7 @@ contract CozyCoQuiltSupplyStore is
                 prices[i],
                 memberPrices[i],
                 quantities[i],
-                metadataTokenAtIndexes[i],
+                supplyIds[i],
                 isMemberExclusives[i]
             );
         }
@@ -266,7 +266,7 @@ contract CozyCoQuiltSupplyStore is
         uint256[] memory prices,
         uint256[] memory memberPrices,
         uint256[] memory quantities,
-        uint256[] memory metadataTokenAtIndexes,
+        uint256[] memory supplyIds,
         bool[] memory isMemberExclusives,
         uint256[] memory bundleSizes,
         uint256[][] memory tokenIdsInBundle,
@@ -284,7 +284,7 @@ contract CozyCoQuiltSupplyStore is
                 prices[i],
                 memberPrices[i],
                 quantities[i],
-                metadataTokenAtIndexes[i],
+                supplyIds[i],
                 isMemberExclusives[i]
             );
 
@@ -313,7 +313,7 @@ contract CozyCoQuiltSupplyStore is
     //     uint256[] memory prices,
     //     uint256[] memory memberPrices,
     //     uint256[] memory quantities,
-    //     uint256[] memory metadataTokenAtIndexes,
+    //     uint256[] memory supplyIds,
     //     bool[] memory isMemberExclusives
     // ) public onlyOwner {
     //     for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -336,10 +336,7 @@ contract CozyCoQuiltSupplyStore is
 
     function uri(uint256 id) public view virtual override returns (string memory tokenURI) {
         if (tokens[id].metadata == address(0)) revert NotFound();
-        tokenURI = ISuppliesMetadata(tokens[id].metadata).tokenURI(
-            id,
-            tokens[id].metadataTokenAtIndex
-        );
+        tokenURI = ISuppliesMetadata(tokens[id].metadata).tokenURI(id, tokens[id].supplyId);
     }
 
     /**************************************************************************

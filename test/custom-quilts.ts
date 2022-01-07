@@ -440,7 +440,7 @@ describe("Custom quilts", () => {
   });
 
   describe.only("QuiltMaker", () => {
-    it.skip("should validate a layout", async () => {
+    it("should validate a layout", async () => {
       const patches = [
         [0, 0, 1, 1],
         [1, 0, 1, 1],
@@ -488,16 +488,19 @@ describe("Custom quilts", () => {
       const w = BigNumber.from(6);
       const h = BigNumber.from(6).shl(128);
       const size = w.or(h);
-      await quiltMaker.createQuilt(size, patches, { value: 0 });
+      await quiltMaker.createQuilt(size, patches, {
+        value: ethers.utils.parseEther("0.08"),
+      });
       expect(true).to.be.true;
     });
 
-    it("should set up the max stock", async () => {
+    it.skip("should set up the max stock", async () => {
+      expect(await quiltMaker.getMaxStock(2, 2)).to.equal(50);
       expect(await quiltMaker.getMaxStock(2, 2)).to.equal(50);
     });
   });
 
-  describe.skip("QuiltMakerRenderer", () => {
+  describe("QuiltMakerRenderer", () => {
     it("should validate a layout", async () => {
       const patches = [
         [0, 0, 1, 1],
