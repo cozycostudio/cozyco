@@ -50,8 +50,8 @@ describe("Custom quilts", () => {
     patchesBlankData = await PatchesBlankData.deploy();
 
     await cozyCoQuiltSupplyStore.setQuiltMakerAddress(quiltMaker.address);
-    await cozyCoQuiltSupplyStore.openToPublic();
     await cozyCoQuiltSupplyStore.openToMembers();
+    await cozyCoQuiltSupplyStore.openToPublic();
 
     const MembershipMetadata = await ethers.getContractFactory(
       "CCMFriendsOfMetadata"
@@ -61,7 +61,7 @@ describe("Custom quilts", () => {
     await cozyCoMembership.issueMembership(customerMember.address, 1);
   });
 
-  describe("CozyCoQuiltSupplyStore", () => {
+  describe.only("CozyCoQuiltSupplyStore", () => {
     describe("Set up", () => {
       it("should set the owner", async () => {
         expect(await cozyCoQuiltSupplyStore.owner()).to.equal(deployer.address);
@@ -439,7 +439,7 @@ describe("Custom quilts", () => {
     });
   });
 
-  describe.only("QuiltMaker", () => {
+  describe("QuiltMaker", () => {
     it("should validate a layout", async () => {
       const patches = [
         [0, 0, 1, 1],

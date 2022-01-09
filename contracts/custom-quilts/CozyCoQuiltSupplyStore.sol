@@ -29,14 +29,51 @@ contract CozyCoQuiltSupplyStore is
      * STORAGE
      *************************************************************************/
 
+    /** Constants **/
+    // TODO: Replace with correct order of bits
+    // Item information... TOTAL 128 bits
+    uint256 private constant STORE_OFFSET = 8; // uint8
+    uint256 private constant COLLECTION_ID_OFFSET = 8; // uint8
+    uint256 private constant ITEM_ID_OFFSET = 32; // uint32
+    uint256 private constant ITEM_TYPE_OFFSET = 8; // uint8
+    uint256 private constant ITEM_MEMBER_EXC_BOOL_OFFSET = 8; // uint8
+    uint256 private constant ITEM_RENDERER_INDEX_OFFSET = 16; // uint16
+    uint256 private constant ITEM_RENDERER_ADDR_OFFSET = 16; // uint16
+    uint256 private constant ITEM_WIDTH = 16; // uint16
+    uint256 private constant ITEM_HEIGHT = 16; // uint16
+    // Pricing
+    uint256 private constant PUBLIC_PRICE_OFFSET = 0; // uint128
+    uint256 private constant MEMBER_PRICE_OFFSET = 128; // uint128
+    // Store opening hours
+    uint256 private constant OPEN_TO_PUBLIC_BOOL_OFFSET = 0; // uint128
+    uint256 private constant OPEN_TO_MEMBERS_BOOL_OFFSET = 128; // uint128
+    // Stock sold
+    uint256 private constant STOCK_SOLD_PUBLIC_OFFSET = 0; // uint128
+    uint256 private constant STOCK_SOLD_MEMBERS_OFFSET = 128; // uint128
+
     /** Related contracts **/
     address public quiltMakerAddress;
     IERC1155 private cozyCoMembership;
     mapping(address => bool) private approvedMinterContracts;
 
     /** Opening hours **/
-    bool public storeOpenToMembers;
+    uint256 private storeOpen;
     bool public storeOpenToPublic;
+    bool public storeOpenToMembers;
+
+    /** Collections **/
+    struct Collection {
+        string name;
+        string creator;
+        address creatorAddress;
+        uint256 shareOfSales;
+        uint256[] itemIds;
+    }
+    mapping(uint256 => Collection) private collections;
+
+    /** Items **/
+    mapping(uint256 => uint256) private items;
+    mapping(uint256 => uint256) private itemQuantities;
 
     /** Tokens **/
     struct Token {
@@ -95,8 +132,11 @@ contract CozyCoQuiltSupplyStore is
         ) revert OutOfStock();
     }
 
-    function purchaseSupplies(uint256[] memory tokenIds, uint256[] memory amounts) public payable {
-        if (!storeOpenToPublic) revert StoreClosed();
+    function purchaseSupplies(uint256[] calldata tokenIds, uint256[] calldata amounts)
+        public
+        payable
+    {
+        if (uint128(storeOpen) == 0) revert StoreClosed();
         if (tokenIds.length != amounts.length) revert InvalidConfiguration();
         uint256 totalPrice;
         for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -114,7 +154,7 @@ contract CozyCoQuiltSupplyStore is
         uint256[] memory tokenIds,
         uint256[] memory amounts
     ) public payable {
-        if (!storeOpenToMembers) revert StoreClosed();
+        if (uint128(storeOpen >> 128) == 0) revert StoreClosed();
         if (cozyCoMembership.balanceOf(_msgSender(), membershipId) == 0) revert NotAuthorized();
         if (tokenIds.length != amounts.length) revert InvalidConfiguration();
         uint256 totalPrice;
@@ -305,31 +345,6 @@ contract CozyCoQuiltSupplyStore is
         }
     }
 
-    // Used as a safety net in case anything goes wrong setting the metadata above
-    // function dangerouslySetTokenInfo(
-    //     uint256[] memory tokenIds,
-    //     address metadata,
-    //     uint256[] memory tokenTypes,
-    //     uint256[] memory prices,
-    //     uint256[] memory memberPrices,
-    //     uint256[] memory quantities,
-    //     uint256[] memory supplyIds,
-    //     bool[] memory isMemberExclusives
-    // ) public onlyOwner {
-    //     for (uint256 i = 0; i < tokenIds.length; i++) {
-    //         // Do something
-    //     }
-    // }
-    // function dangerouslySetBundleInfo(
-    //     uint256[] memory tokenIds,
-    //     uint256[] memory bundleSizes,
-    //     uint256[][] memory tokenIdsInBundle
-    // ) public onlyOwner {
-    //     for (uint256 i = 0; i < tokenIds.length; i++) {
-    //         // Do something
-    //     }
-    // }
-
     /**************************************************************************
      * TOKEN URI
      *************************************************************************/
@@ -378,14 +393,17 @@ contract CozyCoQuiltSupplyStore is
      *************************************************************************/
 
     function openToPublic() public onlyOwner {
+        storeOpen = storeOpen | (1 << OPEN_TO_PUBLIC_BOOL_OFFSET);
         storeOpenToPublic = true;
     }
 
     function openToMembers() public onlyOwner {
+        storeOpen = storeOpen | (1 << OPEN_TO_MEMBERS_BOOL_OFFSET);
         storeOpenToMembers = true;
     }
 
     function closeStore() public onlyOwner {
+        storeOpen = 0;
         storeOpenToPublic = false;
         storeOpenToMembers = false;
     }
