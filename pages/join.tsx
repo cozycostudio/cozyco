@@ -43,12 +43,12 @@ function JoinCozyCo() {
   const [balance, setBalance] = useState(0);
 
   const { data: memberList } = useSWR<GetMerkleProofResponse>(
-    account ? `/api/merkle-proof?address=${account}` : null,
+    account ? `/api/cozyco-memberships/merkle-proof?address=${account}` : null,
     fetcher
   );
 
   const { data: checkList } = useSWR<MemberListCheckResponse>(
-    account ? `/api/check-list?address=${account}` : null,
+    account ? `/api/cozyco-memberships/check-list?address=${account}` : null,
     fetcher
   );
 
