@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { membersList } from "../../tokens/cozyco-memberships";
-import { isValidAddress, resolveAddress } from "../../utils/eth";
+import { membersList } from "../../../tokens/cozyco-memberships";
+import { isValidAddress, resolveAddress } from "../../../utils/eth";
 
 export interface MemberListCheckResponse {
   isOnList: boolean;

@@ -6,8 +6,8 @@ import { useWeb3 } from "../hooks/useWeb3";
 import { useModal } from "../hooks/useModal";
 import { useMint } from "../hooks/useMint";
 import { ModalType } from "../providers/ModalManager";
-import { GetMerkleProofResponse } from "./api/merkle-proof";
-import { MemberListCheckResponse } from "./api/member-list-check";
+import { GetMerkleProofResponse } from "./api/cozyco-memberships/merkle-proof";
+import { MemberListCheckResponse } from "./api/cozyco-memberships/check-list";
 import { fetcher } from "../utils/fetch";
 import { Paragraph } from "../components/Typography";
 import { PageContent } from "../components/PageContent";
@@ -48,7 +48,7 @@ function JoinCozyCo() {
   );
 
   const { data: checkList } = useSWR<MemberListCheckResponse>(
-    account ? `/api/member-list-check?address=${account}` : null,
+    account ? `/api/check-list?address=${account}` : null,
     fetcher
   );
 

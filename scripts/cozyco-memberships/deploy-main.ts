@@ -9,11 +9,11 @@ async function main() {
   const gasPrice = await provider.getGasPrice();
   console.log("Current gas price: " + gasPrice.toString());
 
-  // const CozyCoMembership = await ethers.getContractFactory("CozyCoMembership");
-  // const contract = await CozyCoMembership.deploy({
-  //   gasLimit: ethers.BigNumber.from(2205000),
-  // });
-  // console.log("CozyCoMembership deployed to:", contract.address);
+  const CozyCoMembership = await ethers.getContractFactory("CozyCoMembership");
+  const contract = await CozyCoMembership.deploy({
+    gasLimit: ethers.BigNumber.from(2205000),
+  });
+  console.log("CozyCoMembership deployed to:", contract.address);
 }
 
 main()
