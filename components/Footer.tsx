@@ -1,10 +1,11 @@
 import styled from "styled-components";
+import { MaxWidthWrapper } from "./MaxWidthWrapper";
 import { Paragraph } from "./Typography";
 
 const FooterWrapper = styled.footer`
   padding: ${(p) =>
     `${p.theme.spacing.xl} calc(${p.theme.spacing.s} + 0.5rem) ${p.theme.spacing.xl} ${p.theme.spacing.s}`};
-  text-align: right;
+  text-align: left;
 
   @media screen and (min-width: ${(p) => p.theme.breakpoints.s}) {
     padding: ${(p) => p.theme.spacing.xl};
@@ -19,9 +20,11 @@ const FooterText = styled(Paragraph)`
 export function Footer() {
   return (
     <FooterWrapper>
-      <FooterText>
-        a <a href="https://samking.studio">sam king studio</a> project
-      </FooterText>
+      <MaxWidthWrapper>
+        <FooterText>
+          a <a href="https://samking.studio">sam king studio</a> project
+        </FooterText>
+      </MaxWidthWrapper>
     </FooterWrapper>
   );
 }
