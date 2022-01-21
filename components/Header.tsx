@@ -7,6 +7,9 @@ import { TwitterLinkIcon } from "./TwitterLinkIcon";
 import { H1, H2 } from "./Typography";
 
 const Wrapper = styled.header`
+  max-width: ${(p) => p.theme.maxWidths.m};
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: ${(p) => p.theme.spacing.m};
 `;
 

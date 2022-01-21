@@ -15,24 +15,21 @@ export const H1 = styled.h1<TypographyProps>`
 
 export const H2 = styled.h2<TypographyProps>`
   font-size: ${(p) => p.theme.fontSizes.l};
-  font-family: ${(p) => p.theme.fonts.heading};
-  font-style: italic;
+  font-family: ${(p) => p.theme.fonts.body};
   margin: 0;
   ${withMargin};
 `;
 
 export const H3 = styled.h3<TypographyProps>`
   font-size: ${(p) => p.theme.fontSizes.m};
-  font-family: ${(p) => p.theme.fonts.heading};
-  font-style: italic;
+  font-family: ${(p) => p.theme.fonts.body};
   margin: 0;
   ${withMargin};
 `;
 
 export const H4 = styled.h4<TypographyProps>`
-  font-size: ${(p) => p.theme.fontSizes.m};
-  font-family: ${(p) => p.theme.fonts.heading};
-  font-style: italic;
+  font-size: ${(p) => p.theme.fontSizes.s};
+  font-family: ${(p) => p.theme.fonts.body};
   margin: 0;
   ${withMargin};
 `;

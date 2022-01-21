@@ -2,15 +2,10 @@ import styled from "styled-components";
 
 const Link = styled.a`
   display: block;
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
 
   path {
-    fill: #f1aa5d;
-    transition: fill 150ms ease-in-out;
-  }
-
-  &:hover path {
     fill: ${(p) => p.theme.colors.fg};
   }
 `;
@@ -19,8 +14,8 @@ export function TwitterLinkIcon() {
   return (
     <Link href="/s/twitter">
       <svg
-        width="34"
-        height="34"
+        width="100%"
+        height="100%"
         viewBox="0 0 34 34"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

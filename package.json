@@ -10,6 +10,7 @@
     "compile-contracts": "npx hardhat compile"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.5.2",
     "@rari-capital/solmate": "^6.0.0",
     "@reach/dialog": "^0.16.2",
     "@reach/menu-button": "^0.16.2",

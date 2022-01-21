@@ -4,8 +4,7 @@ export const GlobalStyles = createGlobalStyle`
   @font-face {
     font-family: DomaineDisplayBold;
     font-display: fallback;
-    src: url(/fonts/DomaineDisplay-BoldItalic.woff) format("woff"),
-      url(/fonts/DomaineDisplay-BoldItalic.woff2) format("woff2");
+    src: url(/fonts/DomaineDisplay-BoldItalic.woff2) format("woff2");
     font-style: italic;
     font-weight: bold;
   }
@@ -13,10 +12,17 @@ export const GlobalStyles = createGlobalStyle`
   @font-face {
     font-family: Mono;
     font-display: fallback;
-    src: url(/fonts/GT-America-Mono.woff) format("woff"),
-      url(/fonts/GT-America-Mono.woff2) format("woff2");
+    src: url(/fonts/VCTR-Mono-Regular.woff2) format("woff2");
     font-style: normal;
     font-weight: normal;
+  }
+
+  @font-face {
+    font-family: Mono;
+    font-display: fallback;
+    src: url(/fonts/VCTR-Mono-Bold.woff2) format("woff2");
+    font-style: normal;
+    font-weight: bold;
   }
 
   * {
@@ -66,5 +72,9 @@ export const GlobalStyles = createGlobalStyle`
 
   a {
     color: inherit;
+  }
+
+  ul {
+    margin-left: 1.5rem;
   }
 `;

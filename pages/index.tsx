@@ -12,11 +12,10 @@ function Index() {
       <Header />
       <MaxWidthWrapper as="section">
         <Paragraph>
-          The Stitcher, known for creating{" "}
+          The Quilt Stitcher, known for creating{" "}
           <a href="https://quilts.art">quilts on-chain</a>, has created a new
           company for more cozy wares… cozy co. When quilts sold out, it gave
-          him confidence that his cozy items were something that people liked
-          and enjoyed.
+          him confidence that his cozy items were something that people enjoyed.
         </Paragraph>
         <Paragraph margin="s 0 0">
           To reward the folks who helped launch the new company, a very limited

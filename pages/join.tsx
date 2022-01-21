@@ -9,7 +9,7 @@ import { ModalType } from "../providers/ModalManager";
 import { GetMerkleProofResponse } from "./api/cozyco-memberships/merkle-proof";
 import { MemberListCheckResponse } from "./api/cozyco-memberships/check-list";
 import { fetcher } from "../utils/fetch";
-import { Paragraph } from "../components/Typography";
+import { H3, Paragraph } from "../components/Typography";
 import { PageContent } from "../components/PageContent";
 import { MaxWidthWrapper } from "../components/MaxWidthWrapper";
 import { Header } from "../components/Header";
@@ -133,13 +133,13 @@ function JoinCozyCo() {
         <meta name="twitter:image" content={metaImage} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
-      <Header subPageTitle="friend of cozy co." />
+      <Header />
       <MaxWidthWrapper as="section">
+        <H3>become a friend of cozy co.</H3>
         {mintingState === MintingState.NOT_CONNECTED && (
           <>
             <Paragraph margin="0 0 m">
-              Connect your wallet to see if you're eligible to mint a cozy
-              membership card.
+              connect your wallet to see if you're eligible to join
             </Paragraph>
             <Button onClick={handleMint}>connect wallet</Button>
           </>
@@ -147,16 +147,16 @@ function JoinCozyCo() {
 
         {mintingState === MintingState.NOT_READY && (
           <Paragraph>
-            <LoadingText>Loading some things, 2 secs</LoadingText>
+            <LoadingText>loading some things, 2 secs</LoadingText>
           </Paragraph>
         )}
 
         {mintingState === MintingState.ALREADY_CLAIMED && (
           <>
-            <Paragraph>You're already a member!</Paragraph>
+            <Paragraph>you're already a member!</Paragraph>
             <Paragraph margin="s 0 0">
-              Don't forget to check out the <a href="/s/twitter">Twitter</a> and{" "}
-              <a href="/s/discord">Discord</a> to know when the first cozy co.
+              don't forget to check out the <a href="/s/twitter">twitter</a> and{" "}
+              <a href="/s/discord">discord</a> to know when the first cozy co.
               drop happens.
             </Paragraph>
           </>
@@ -164,7 +164,7 @@ function JoinCozyCo() {
 
         {mintingState === MintingState.READY && !checkList && (
           <Paragraph>
-            <LoadingText>Checking the list</LoadingText>
+            <LoadingText>checking the list</LoadingText>
           </Paragraph>
         )}
 
@@ -172,15 +172,12 @@ function JoinCozyCo() {
           checkList &&
           !checkList.isOnList && (
             <>
-              <Paragraph>
-                Sadly you're not on the list right now. Tweet{" "}
-                <a href="/s/twitter">@cozycostudio</a> or hop in the{" "}
-                <a href="/s/discord">Discord</a> and your luck may change!
-              </Paragraph>
+              <Paragraph>sadly you're not on the list right now :(</Paragraph>
               <Paragraph margin="s 0 0">
-                Note: The initial round of memberships were only for people who
-                filled out a form, and had a quilt at the time of a snapshot.
-                These requirements may change in future and be open to everyone.
+                the initial round of memberships were only for people who filled
+                out a form, and held at least one quilt at the time of a
+                snapshot. these requirements may change in future and be open to
+                everyone.
               </Paragraph>
             </>
           )}
@@ -190,7 +187,7 @@ function JoinCozyCo() {
             {mintingState === MintingState.READY && (
               <>
                 <Paragraph margin="0 0 m">
-                  You're on the list! Claim your membership card below. It's
+                  you're on the list! claim your membership card below. it's
                   free, you'll just pay for gas.
                 </Paragraph>
                 <Button onClick={handleMint}>claim membership card</Button>
@@ -200,14 +197,14 @@ function JoinCozyCo() {
             {mintingState === MintingState.ERROR && (
               <>
                 <Paragraph margin="0 0 m">
-                  You're on the list! Claim your membership card below. It's
+                  you're on the list! claim your membership card below. it's
                   free, you'll just pay for gas.
                 </Paragraph>
                 <Button onClick={handleMint}>claim membership card</Button>
                 <Paragraph margin="s 0 0">
                   <small>
-                    Something went wrong. You can try again but if it persists,
-                    reach out on Twitter or Discord.
+                    something went wrong. you can try again but if it persists,
+                    reach out on twitter or discord.
                   </small>
                 </Paragraph>
               </>
@@ -216,7 +213,7 @@ function JoinCozyCo() {
             {mintingState === MintingState.WAITING && (
               <>
                 <Paragraph margin="0 0 m">
-                  You're on the list! Claim your membership card below. It's
+                  you're on the list! claim your membership card below. it's
                   free, you'll just pay for gas.
                 </Paragraph>
                 <Button onClick={() => {}}>
@@ -228,13 +225,13 @@ function JoinCozyCo() {
             {mintingState === MintingState.BROADCASTED && (
               <>
                 <Paragraph>
-                  Nice! Now we wait for Ethereum to do it's thing. Your
-                  membership card should be with you soon. Feel free to close
-                  this page and check your wallet later.
+                  <strong>nice!</strong> now we wait for ethereum to do it's
+                  thing. your membership card should be with you soon. feel free
+                  to close this page and check your wallet later.
                 </Paragraph>
                 <Paragraph margin="s 0 0">
-                  Don't forget to check out the <a href="/s/twitter">Twitter</a>{" "}
-                  and <a href="/s/discord">Discord</a> to know when the first
+                  don't forget to check out the <a href="/s/twitter">twitter</a>{" "}
+                  and <a href="/s/discord">discord</a> to know when the first
                   cozy co. drop happens.
                 </Paragraph>
               </>
@@ -243,11 +240,11 @@ function JoinCozyCo() {
             {mintingState === MintingState.CONFIRMED && (
               <>
                 <Paragraph>
-                  Welcome to cozy co. You're now an official member!
+                  welcome to cozy co. you're now an official member!
                 </Paragraph>
                 <Paragraph margin="s 0 0">
-                  Don't forget to check out the <a href="/s/twitter">Twitter</a>{" "}
-                  and <a href="/s/discord">Discord</a> to know when the first
+                  don't forget to check out the <a href="/s/twitter">twitter</a>{" "}
+                  and <a href="/s/discord">tiscord</a> to know when the first
                   cozy co. drop happens.
                 </Paragraph>
               </>
