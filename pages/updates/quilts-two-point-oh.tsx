@@ -1,18 +1,38 @@
 import React from "react";
+import Head from "next/head";
 import Image from "next/image";
+import styled from "styled-components";
 import { PageContent } from "../../components/PageContent";
 import { H2, H3, H4, Paragraph } from "../../components/Typography";
 import { MaxWidthWrapper } from "../../components/MaxWidthWrapper";
 import { Header } from "../../components/Header";
-import styled from "styled-components";
 
 const ImageWrapper = styled.div`
   margin: ${(p) => p.theme.spacing.m} 0;
 `;
 
 function QuiltsTwoPointOh() {
+  const metaTitle = "quilts 2.0 - customization";
+  const metaDescription =
+    "I thought I'd give a more detailed update on the things I've been working on and thinking about since the initial Quilts release back in October.";
+  const metaImage = "https://cozyco.studio/og-image-community-update-1.png";
+
   return (
     <PageContent>
+      <Head>
+        <title>{metaTitle}</title>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content={metaDescription} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:image" content={metaImage} />
+        <meta property="og:url" content="https://cozyco.studio/join" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={metaImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
+
       <Header />
       <MaxWidthWrapper as="section">
         <Paragraph>community update: january 20, 2022</Paragraph>
