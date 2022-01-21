@@ -4,32 +4,36 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../utils/Base64.sol";
+import "./ISuppliesMetadata.sol";
+import "./ISupplyStore.sol";
+import "./SupplySKU.sol";
 
 // import "hardhat/console.sol";
 
 interface IQuiltMakerRenderer {
     function tokenURI(uint256 tokenId) external view returns (string memory tokenBase64);
 
-    function validatePatchLayout(uint256 size, uint256[] memory patches)
-        external
-        pure
-        returns (bool);
+    function validatePatchLayout(
+        uint256 size,
+        uint256[] memory supplySkus,
+        uint256[] memory supplyCoords
+    ) external pure returns (bool);
 }
 
 contract QuiltMakerRenderer is Ownable, IQuiltMakerRenderer {
     /**
-        @notice Validates a layout of patches for a quilt
-        @dev Create a bitmap of the patch layout where 1 is occupied space and 0 is free space. While we're looping through all the patches, if the current space is already taken, we flip it back to 0. The desired result the entire bitmap to be 1's. Any 0's indicate an invalid layout.
+        @notice Validates a layout of skus for a quilt
+        @dev Create a bitmap of the patch layout where 1 is occupied space and 0 is free space. While we're looping through all the skus, if the current space is already taken, we flip it back to 0. The desired result the entire bitmap to be 1's. Any 0's indicate an invalid layout.
         @param size A bit-packed number: [quiltWidth, quiltHeight]
-        @param patches An array of bit-packed numbers representing patches: [x, y, width, height]
+        @param supplySkus An array of bit-packed numbers representing skus
+        @param supplyCoords An array of bit-packed numbers representing [x, y];
         @return If a layout is valid or not
      */
-    function validatePatchLayout(uint256 size, uint256[] memory patches)
-        public
-        pure
-        override
-        returns (bool)
-    {
+    function validatePatchLayout(
+        uint256 size,
+        uint256[] memory supplySkus,
+        uint256[] memory supplyCoords
+    ) public pure override returns (bool) {
         uint256 width = uint128(size);
         uint256 height = uint128(size >> 128);
         uint256 len = width * height;
@@ -37,11 +41,10 @@ contract QuiltMakerRenderer is Ownable, IQuiltMakerRenderer {
         uint256 validBitmap = 0 | ((1 << len) - 1);
 
         // Create the actual bitmap from patches
-        for (uint256 i = 0; i < patches.length; i++) {
-            uint256 x = uint64(patches[i]);
-            uint256 y = uint64(patches[i] >> 64);
-            uint256 w = uint64(patches[i] >> 128);
-            uint256 h = uint64(patches[i] >> 192);
+        for (uint256 i = 0; i < len; i++) {
+            (, , , , uint256 w, uint256 h, , ) = SupplySKU.decodeSKU(supplySkus[i]);
+            uint256 x = uint64(supplyCoords[i]);
+            uint256 y = uint64(supplyCoords[i] >> 128);
 
             // Out of bounds so return false early
             if (x + w > width || y + h > height) return false;
@@ -59,6 +62,12 @@ contract QuiltMakerRenderer is Ownable, IQuiltMakerRenderer {
         }
 
         return bitmap == validBitmap;
+    }
+
+    function getItemPart(uint256 sku) internal returns (string memory part) {
+        // Get supply store address from storage
+        // Lookup the metadata address for the item part with ISupplyStore.getItemMetadataAddress(sku)
+        // Get the part from ISuppliesMetadata.getCompPart(sku)
     }
 
     function tokenImage(uint256 index) public pure returns (string memory imageBase64) {

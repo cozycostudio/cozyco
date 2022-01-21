@@ -1,5 +1,10 @@
-// SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.10;
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2021 the ethier authors (github.com/divergencetech/ethier)
+pragma solidity >=0.8.0 <0.9.0;
+
+// Inspired by BaseOpenSea by Simon Fremaux (@dievardump) but without the need
+// to pass specific addresses depending on deployment network.
+// https://gist.github.com/dievardump/483eb43bc6ed30b14f01e01842e3339b/
 
 import "./ProxyRegistry.sol";
 

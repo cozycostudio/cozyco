@@ -22,6 +22,10 @@ contract PatchesBlankBundlesData is Ownable, ISuppliesMetadata {
         collection = COLLECTION;
     }
 
+    function getCompPart(uint256 index) public pure override returns (string memory part) {
+        return "";
+    }
+
     function setTokenData(
         uint256[] memory indexes,
         string[] memory names,
@@ -33,20 +37,15 @@ contract PatchesBlankBundlesData is Ownable, ISuppliesMetadata {
         }
     }
 
-    function tokenURI(uint256 tokenId, uint256 index)
-        public
-        view
-        override
-        returns (string memory tokenBase64)
-    {
+    function tokenURI(uint256 tokenId) public view override returns (string memory tokenBase64) {
         string memory json = Base64.encode(
             bytes(
                 string(
                     abi.encodePacked(
                         '{"name":"',
-                        tokenNames[index],
+                        // tokenNames[index],
                         '","description":"A bundle of blank patches. Who knows what is inside?!","image": "',
-                        tokenImages[index],
+                        // tokenImages[index],
                         '","attributes":[{"trait_type":"Type","value":"Bundle","trait_type":"Artist","value":"',
                         ARTIST,
                         '"},{"trait_type":"Collection","value":"',
