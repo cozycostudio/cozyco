@@ -9,6 +9,7 @@ import "./ISupplyStore.sol";
 import "./SupplySKU.sol";
 
 struct Quilt {
+    bytes32 name;
     uint256 size;
     uint256 degradation;
     uint256[] supplySkus;
@@ -20,8 +21,8 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
     IQuiltMakerRenderer public renderer;
 
     uint256 private nextTokenId = 1;
-    uint256 public reservationCost = 0.05 ether;
-    uint256 public memberReservationCost = 0.025 ether;
+    uint256 public reservationCost = 0.08 ether;
+    uint256 public memberReservationCost = 0.04 ether;
 
     mapping(uint256 => Quilt) public quilts;
     mapping(uint256 => uint256) public maxStock;
@@ -34,14 +35,14 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
     error OutOfStock();
 
     /// @notice Reserve a quilt with a certain size so you can stitch your supplies on later
-    function reserveQuilt(uint256 size) public payable {
+    function reserveQuilt(bytes32 name, uint256 size) public payable {
         if (msg.value != reservationCost) revert IncorrectPrice();
         if (soldStock[size] + 1 > maxStock[size]) revert OutOfStock();
         // Mint a quilt reservation token
         _safeMint(_msgSender(), nextTokenId);
         uint256[] memory supplySkus;
         uint256[] memory supplyCoords;
-        quilts[nextTokenId] = Quilt(size, 0, supplySkus, supplyCoords);
+        quilts[nextTokenId] = Quilt(name, size, 0, supplySkus, supplyCoords);
         soldStock[size] += 1;
         nextTokenId += 1;
     }
@@ -53,7 +54,7 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         uint256[] memory supplyCoords
     ) public {
         if (ownerOf[tokenId] != _msgSender()) revert NotOwner();
-        if (!renderer.validatePatchLayout(quilts[tokenId].size, supplySkus, supplyCoords))
+        if (!renderer.validateQuiltLayout(quilts[tokenId].size, supplySkus, supplyCoords))
             revert InvalidLayout();
 
         // Hold the supplies in this contract
@@ -104,25 +105,21 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         quilt.supplyCoords = supplyCoords;
     }
 
-    function getMaxStockForSize(uint256 w, uint256 h) public view returns (uint256 stock) {
-        stock = maxStock[(uint256(uint128(w)) << 128) | uint128(h)];
-    }
-
-    function getAvailableStockForSize(uint256 w, uint256 h)
-        public
-        view
-        returns (uint256 available)
-    {
-        uint256 size = (uint256(uint128(w)) << 128) | uint128(h);
-        available = maxStock[size] - soldStock[size];
-    }
-
     function setMaxStock(
         uint256 w,
         uint256 h,
         uint256 stock
     ) public onlyOwner {
         maxStock[(uint256(uint128(w)) << 128) | uint128(h)] = stock;
+    }
+
+    function setSupplyStoreAddress(uint256 storefrontId, address storefrontAddr) public onlyOwner {
+        supplyStoreAddresses[storefrontId] = ISupplyStore(storefrontAddr);
+    }
+
+    function burn(uint256 tokenId) public {
+        if (ownerOf[tokenId] != _msgSender()) revert NotOwner();
+        _burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
@@ -135,8 +132,17 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         return renderer.tokenURI(tokenId, quilts[tokenId]);
     }
 
-    function setSupplyStoreAddress(uint256 storefrontId, address storefrontAddr) public onlyOwner {
-        supplyStoreAddresses[storefrontId] = ISupplyStore(storefrontAddr);
+    function getMaxStockForSize(uint256 w, uint256 h) public view returns (uint256 stock) {
+        stock = maxStock[(uint256(uint128(w)) << 128) | uint128(h)];
+    }
+
+    function getAvailableStockForSize(uint256 w, uint256 h)
+        public
+        view
+        returns (uint256 available)
+    {
+        uint256 size = (uint256(uint128(w)) << 128) | uint128(h);
+        available = maxStock[size] - soldStock[size];
     }
 
     function totalSupply() public view returns (uint256 total) {

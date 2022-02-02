@@ -15,7 +15,7 @@ interface IQuiltMakerRenderer {
         view
         returns (string memory tokenBase64);
 
-    function validatePatchLayout(
+    function validateQuiltLayout(
         uint256 size,
         uint256[] memory supplySkus,
         uint256[] memory supplyCoords
@@ -31,7 +31,7 @@ contract QuiltMakerRenderer is Ownable, IQuiltMakerRenderer {
         @param supplyCoords An array of bit-packed numbers representing [x, y];
         @return If a layout is valid or not
      */
-    function validatePatchLayout(
+    function validateQuiltLayout(
         uint256 size,
         uint256[] memory supplySkus,
         uint256[] memory supplyCoords
