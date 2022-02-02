@@ -50,6 +50,8 @@ describe("Custom quilts", () => {
       cozyCoMembership.address
     );
 
+    await quiltMakerRenderer.setQuiltMakerAddress(quiltMaker.address);
+
     cozyCoQuiltSupplyStore = await deployCozyCoQuiltSupplyStore(
       cozyCoMembership.address,
       quiltMaker.address
@@ -260,6 +262,53 @@ describe("Custom quilts", () => {
             })
         ).to.be.revertedWith("MemberExclusive()");
       });
+    });
+  });
+
+  describe("QuiltMakerRenderer", () => {
+    beforeEach(async () => {
+      const itemsInput = makeArgsStockInSupplies(patchItems);
+      await cozyCoQuiltSupplyStore.stockInSupplies(
+        ...itemsInput,
+        cozyCo.address,
+        patchesBlankData.address
+      );
+    });
+
+    it("should render a quilt", async () => {
+      const quilt = {
+        name: ethers.utils.formatBytes32String("Cool quilt"),
+        size: BigNumber.from(4).or(BigNumber.from(3).shl(128)),
+        degradation: 0,
+        supplySkus: [6, 2, 5, 0, 7, 1, 4].map((i) => {
+          const patch = patchItems[i];
+          return makeSKU(
+            1,
+            0,
+            i + 1,
+            patch.itemType,
+            patch.itemWidth,
+            patch.itemHeight,
+            patch.metadataPartNumber,
+            0
+          );
+        }),
+        supplyCoords: [
+          BigNumber.from(0).or(BigNumber.from(0).shl(128)),
+          BigNumber.from(2).or(BigNumber.from(0).shl(128)),
+          BigNumber.from(3).or(BigNumber.from(0).shl(128)),
+          BigNumber.from(0).or(BigNumber.from(1).shl(128)),
+          BigNumber.from(1).or(BigNumber.from(1).shl(128)),
+          BigNumber.from(0).or(BigNumber.from(2).shl(128)),
+          BigNumber.from(3).or(BigNumber.from(2).shl(128)),
+        ],
+      };
+
+      const [tokenURI, gasUsed] = await quiltMakerRenderer.tokenURI(1, quilt);
+      const decoded = Buffer.from(tokenURI.substring(29), "base64").toString();
+      const token = JSON.parse(decoded);
+      const svg = Buffer.from(token.image.substring(25), "base64").toString();
+      console.log({ token, svg, gasUsed: gasUsed.toString() });
     });
   });
 });

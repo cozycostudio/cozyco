@@ -57,6 +57,7 @@ const config: HardhatUserConfig = {
     gasPrice: 100,
     coinmarketcap: process.env.CMC_API_KEY,
     excludeContracts: ["contracts/membership"],
+    showTimeSpent: true,
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

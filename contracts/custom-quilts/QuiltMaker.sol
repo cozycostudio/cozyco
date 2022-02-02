@@ -8,6 +8,13 @@ import {IQuiltMakerRenderer} from "./QuiltMakerRenderer.sol";
 import "./ISupplyStore.sol";
 import "./SupplySKU.sol";
 
+interface IQuiltMaker {
+    function getSupplyStoreAddress(uint256 storefrontId)
+        external
+        view
+        returns (ISupplyStore supplyStoreAddress);
+}
+
 struct Quilt {
     bytes32 name;
     uint256 size;
@@ -16,7 +23,7 @@ struct Quilt {
     uint256[] supplyCoords;
 }
 
-contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
+contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver, IQuiltMaker {
     IERC1155 public cozyCoMembership;
     IQuiltMakerRenderer public renderer;
 
@@ -117,6 +124,15 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         supplyStoreAddresses[storefrontId] = ISupplyStore(storefrontAddr);
     }
 
+    function getSupplyStoreAddress(uint256 storefrontId)
+        public
+        view
+        override
+        returns (ISupplyStore supplyStoreAddress)
+    {
+        supplyStoreAddress = supplyStoreAddresses[storefrontId];
+    }
+
     function burn(uint256 tokenId) public {
         if (ownerOf[tokenId] != _msgSender()) revert NotOwner();
         _burn(tokenId);
@@ -129,7 +145,8 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         override(ERC721)
         returns (string memory)
     {
-        return renderer.tokenURI(tokenId, quilts[tokenId]);
+        (string memory tokenData, ) = renderer.tokenURI(tokenId, quilts[tokenId]);
+        return tokenData;
     }
 
     function getMaxStockForSize(uint256 w, uint256 h) public view returns (uint256 stock) {

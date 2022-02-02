@@ -20,6 +20,17 @@ contract PatchesBlankData is Ownable, ISupplyMetadata {
     mapping(uint256 => address) public svgPartPointers;
 
     bytes6[5] private imageBackgrounds = [bytes6("FBF4F0"), "FFEDED", "FFD8CC", "E6EDFF", "9CE2DF"];
+    bytes6[9] private patchColours = [
+        bytes6("FDD75F"),
+        "FEA589",
+        "5F8BFD",
+        "FFAFCC",
+        "3FACA6",
+        "FD7C84",
+        "237672",
+        "6974D4",
+        "9A3D5F"
+    ];
 
     error InvalidPart();
 
@@ -30,9 +41,14 @@ contract PatchesBlankData is Ownable, ISupplyMetadata {
         partsCount += _parts.length;
     }
 
-    function getSupplySVGPart(uint256 partNumber) public view override returns (bytes memory part) {
+    function getSupplySVGPart(uint256 partNumber)
+        public
+        view
+        override
+        returns (string memory part)
+    {
         if (partNumber == 0 || partNumber > partsCount) revert InvalidPart();
-        part = SSTORE2.read(svgPartPointers[partNumber]);
+        part = string(SSTORE2.read(svgPartPointers[partNumber]));
     }
 
     function tokenImageForSKU(uint256 sku) public view returns (string memory imageBase64) {
@@ -113,14 +129,41 @@ contract PatchesBlankData is Ownable, ISupplyMetadata {
         // Add some of the base patches
         bytes[] memory parts = new bytes[](36);
         for (uint256 i = 0; i < 36; i++) {
+            bytes6 color = patchColours[
+                Random.seeded(Strings.uintToString(i * 400)) % patchColours.length
+            ];
             if (i < 16) {
-                parts[i] = bytes('<rect width="64" height="64" x="0" y="0" fill="#ffffff" />');
+                parts[i] = bytes(
+                    abi.encodePacked(
+                        '<rect width="64" height="64" x="0" y="0" fill="#',
+                        color,
+                        '" />'
+                    )
+                );
             } else if (i < 24) {
-                parts[i] = bytes('<rect width="128" height="64" x="0" y="0" fill="#ffffff" />');
+                parts[i] = bytes(
+                    abi.encodePacked(
+                        '<rect width="128" height="64" x="0" y="0" fill="#',
+                        color,
+                        '" />'
+                    )
+                );
             } else if (i < 32) {
-                parts[i] = bytes('<rect width="64" height="128" x="0" y="0" fill="#ffffff" />');
+                parts[i] = bytes(
+                    abi.encodePacked(
+                        '<rect width="64" height="128" x="0" y="0" fill="#',
+                        color,
+                        '" />'
+                    )
+                );
             } else {
-                parts[i] = bytes('<rect width="128" height="128" x="0" y="0" fill="#ffffff" />');
+                parts[i] = bytes(
+                    abi.encodePacked(
+                        '<rect width="128" height="128" x="0" y="0" fill="#',
+                        color,
+                        '" />'
+                    )
+                );
             }
         }
         addParts(parts);

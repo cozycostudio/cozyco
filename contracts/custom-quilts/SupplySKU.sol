@@ -80,6 +80,19 @@ library SupplySKU {
         itemId = uint64(sku >> 32);
     }
 
+    function getItemType(uint256 sku) internal pure returns (uint256 itemType) {
+        itemType = uint32(sku >> 96);
+    }
+
+    function getItemSize(uint256 sku) internal pure returns (uint256 w, uint256 h) {
+        w = uint32(sku >> 128);
+        h = uint32(sku >> 160);
+    }
+
+    function getMetadataPartNumber(uint256 sku) internal pure returns (uint256 metadataPartNumber) {
+        metadataPartNumber = uint32(sku >> 192);
+    }
+
     function getMetadataAddrIndex(uint256 sku) internal pure returns (uint256 metadataAddrIndex) {
         metadataAddrIndex = uint32(sku >> 224);
     }

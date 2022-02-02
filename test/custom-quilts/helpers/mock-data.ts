@@ -41,6 +41,7 @@ export const blankPatchItems: Item[] = [
     memberPrice: ethers.utils.parseEther("0.008"),
     quantity: 10,
     memberExclusive: false,
+    metadataPartNumber: 1,
   },
   {
     itemWidth: 1,
@@ -49,6 +50,7 @@ export const blankPatchItems: Item[] = [
     memberPrice: ethers.utils.parseEther("0.008"),
     quantity: 10,
     memberExclusive: false,
+    metadataPartNumber: 2,
   },
   {
     itemWidth: 1,
@@ -57,6 +59,7 @@ export const blankPatchItems: Item[] = [
     memberPrice: ethers.utils.parseEther("0.008"),
     quantity: 10,
     memberExclusive: false,
+    metadataPartNumber: 3,
   },
   {
     itemWidth: 1,
@@ -65,6 +68,7 @@ export const blankPatchItems: Item[] = [
     memberPrice: ethers.utils.parseEther("0.008"),
     quantity: 10,
     memberExclusive: false,
+    metadataPartNumber: 4,
   },
   {
     itemWidth: 1,
@@ -73,11 +77,38 @@ export const blankPatchItems: Item[] = [
     memberPrice: ethers.utils.parseEther("0.008"),
     quantity: 10,
     memberExclusive: true,
+    metadataPartNumber: 5,
   },
-].map((i, idx) => ({
+  {
+    itemWidth: 1,
+    itemHeight: 2,
+    price: ethers.utils.parseEther("0.01"),
+    memberPrice: ethers.utils.parseEther("0.008"),
+    quantity: 10,
+    memberExclusive: false,
+    metadataPartNumber: 25,
+  },
+  {
+    itemWidth: 2,
+    itemHeight: 1,
+    price: ethers.utils.parseEther("0.01"),
+    memberPrice: ethers.utils.parseEther("0.008"),
+    quantity: 10,
+    memberExclusive: false,
+    metadataPartNumber: 20,
+  },
+  {
+    itemWidth: 2,
+    itemHeight: 2,
+    price: ethers.utils.parseEther("0.01"),
+    memberPrice: ethers.utils.parseEther("0.008"),
+    quantity: 10,
+    memberExclusive: false,
+    metadataPartNumber: 35,
+  },
+].map((i) => ({
   ...i,
   itemType: ItemTypes.Patch,
-  metadataPartNumber: idx + 1,
 }));
 
 export const blankPatchBundles: Bundle[] = [
