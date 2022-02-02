@@ -1,79 +1,120 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
 
-import {ERC721} from "../tokens/ERC721.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "../tokens/ERC721.sol";
 import {IERC1155, ERC1155TokenReceiver} from "../tokens/ERC1155.sol";
 import {IQuiltMakerRenderer} from "./QuiltMakerRenderer.sol";
+import "./ISupplyStore.sol";
 import "./SupplySKU.sol";
 
+struct Quilt {
+    uint256 size;
+    uint256 degradation;
+    uint256[] supplySkus;
+    uint256[] supplyCoords;
+}
+
 contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
-    IERC1155 private cozyCoMembership;
-    address public supplyStore;
+    IERC1155 public cozyCoMembership;
     IQuiltMakerRenderer public renderer;
 
     uint256 private nextTokenId = 1;
-    uint256 public creationCost = 0.08 ether;
-    uint256 public memberCreationCost = 0.04 ether;
+    uint256 public reservationCost = 0.05 ether;
+    uint256 public memberReservationCost = 0.025 ether;
 
-    struct Quilt {
-        uint256 degradation;
-        uint256[] supplies;
-        uint256[] layout;
-    }
     mapping(uint256 => Quilt) public quilts;
-
     mapping(uint256 => uint256) public maxStock;
+    mapping(uint256 => uint256) public soldStock;
+    mapping(uint256 => ISupplyStore) public supplyStoreAddresses;
 
     error IncorrectPrice();
     error InvalidLayout();
+    error NotOwner();
+    error OutOfStock();
 
-    function createQuilt(
-        uint256 size,
-        uint256[] memory supplySkus,
-        uint256[] memory supplyCoords
-    ) public payable {
-        if (!renderer.validatePatchLayout(size, supplySkus, supplyCoords)) revert InvalidLayout();
-        if (msg.value != creationCost) revert IncorrectPrice();
-        // TODO: add membership discounts
-
-        // Hold the supplies in this contract
-        uint256[] memory transferAmounts = new uint256[](supplySkus.length);
-        for (uint256 i = 0; i < supplySkus.length; i++) {
-            uint256 id = SupplySKU.getItemId(supplySkus[i]);
-            // Check they actually own the patches
-            if (IERC1155(supplyStore).balanceOf(_msgSender(), id) == 0) revert NotAuthorized();
-            transferAmounts[i] = 1;
-        }
-
-        IERC1155(supplyStore).safeBatchTransferFrom(
-            _msgSender(),
-            address(this),
-            supplySkus,
-            transferAmounts,
-            ""
-        );
-
-        // Mint the quilt
+    /// @notice Reserve a quilt with a certain size so you can stitch your supplies on later
+    function reserveQuilt(uint256 size) public payable {
+        if (msg.value != reservationCost) revert IncorrectPrice();
+        if (soldStock[size] + 1 > maxStock[size]) revert OutOfStock();
+        // Mint a quilt reservation token
         _safeMint(_msgSender(), nextTokenId);
-        quilts[nextTokenId] = Quilt(0, supplySkus, supplyCoords);
+        uint256[] memory supplySkus;
+        uint256[] memory supplyCoords;
+        quilts[nextTokenId] = Quilt(size, 0, supplySkus, supplyCoords);
+        soldStock[size] += 1;
         nextTokenId += 1;
     }
 
-    // function recycleQuilt(uint256 tokenId, uint256[] memory newPatchIds)
-    //     public
-    //     payable
-    // {
-    //     // 1. check if msg.sender owns tokenId
-    //     // 2. check if msg.sender owns newPatchIds that are not in suppliesForQuilt
-    //     // 3. check valid layout
-    //     // 4. transfer new tokens to this contract
-    //     // 5. transfer remainder tokens to msg.sender
-    //     // 6. set new layout
-    // }
+    /// @notice Transforms a reserved quilt into one with custom supplies
+    function createQuilt(
+        uint256 tokenId,
+        uint256[] memory supplySkus,
+        uint256[] memory supplyCoords
+    ) public {
+        if (ownerOf[tokenId] != _msgSender()) revert NotOwner();
+        if (!renderer.validatePatchLayout(quilts[tokenId].size, supplySkus, supplyCoords))
+            revert InvalidLayout();
 
-    function getMaxStock(uint256 w, uint256 h) public view returns (uint256 stock) {
+        // Hold the supplies in this contract
+        for (uint256 i = 0; i < supplySkus.length; i++) {
+            uint256 itemId = SupplySKU.getItemId(supplySkus[i]);
+            IERC1155 supplyStore = supplyStoreAddresses[SupplySKU.getStorefrontId(supplySkus[i])];
+            // Check they actually own the item
+            if (supplyStore.balanceOf(_msgSender(), itemId) == 0) revert NotAuthorized();
+            // Transfer the item
+            supplyStore.safeTransferFrom(_msgSender(), address(this), itemId, 1, "");
+        }
+
+        quilts[tokenId].supplySkus = supplySkus;
+        quilts[tokenId].supplyCoords = supplyCoords;
+    }
+
+    function recycleQuilt(
+        uint256 tokenId,
+        uint256[] memory supplySkus,
+        uint256[] memory supplyCoords
+    ) public payable {
+        // ~ possibly check if msg.sender has built before or has recycling ability ~
+        // 1. check if msg.sender owns tokenId
+        // 2. check if msg.sender owns supplySkus that are not in quilts[tokenId]
+        // 3. check valid layout
+        // 4. transfer new tokens to this contract
+        // 5. transfer remainder tokens to msg.sender
+        // 6. update quilt with new layout and increased degradation
+    }
+
+    function unStitchQuilt(uint256 tokenId) public {
+        if (ownerOf[tokenId] != _msgSender()) revert NotOwner();
+
+        Quilt storage quilt = quilts[tokenId];
+
+        for (uint256 i = 0; i < quilt.supplySkus.length; i++) {
+            uint256 itemId = SupplySKU.getItemId(quilt.supplySkus[i]);
+            IERC1155 supplyStore = supplyStoreAddresses[
+                SupplySKU.getStorefrontId(quilt.supplySkus[i])
+            ];
+            // Transfer the supplies back to the owner
+            supplyStore.safeTransferFrom(address(this), _msgSender(), itemId, 1, "");
+        }
+
+        uint256[] memory supplySkus;
+        uint256[] memory supplyCoords;
+        quilt.supplySkus = supplySkus;
+        quilt.supplyCoords = supplyCoords;
+    }
+
+    function getMaxStockForSize(uint256 w, uint256 h) public view returns (uint256 stock) {
         stock = maxStock[(uint256(uint128(w)) << 128) | uint128(h)];
+    }
+
+    function getAvailableStockForSize(uint256 w, uint256 h)
+        public
+        view
+        returns (uint256 available)
+    {
+        uint256 size = (uint256(uint128(w)) << 128) | uint128(h);
+        available = maxStock[size] - soldStock[size];
     }
 
     function setMaxStock(
@@ -91,22 +132,22 @@ contract QuiltMaker is Ownable, ERC721, ERC1155TokenReceiver {
         override(ERC721)
         returns (string memory)
     {
-        // renderer.tokenURI(tokenId, supplies, coords, degradation);
-        return string(abi.encodePacked(tokenId));
+        return renderer.tokenURI(tokenId, quilts[tokenId]);
+    }
+
+    function setSupplyStoreAddress(uint256 storefrontId, address storefrontAddr) public onlyOwner {
+        supplyStoreAddresses[storefrontId] = ISupplyStore(storefrontAddr);
     }
 
     function totalSupply() public view returns (uint256 total) {
         total = nextTokenId - 1;
     }
 
-    constructor(
-        address supplyStoreAddr,
-        address membershipAddr,
-        address rendererAddr
-    ) ERC721("cozy co. custom quilts", "CCCQ") {
-        supplyStore = supplyStoreAddr;
-        cozyCoMembership = IERC1155(membershipAddr);
+    constructor(address rendererAddr, address membershipAddr)
+        ERC721("cozy co. custom quilts", "CCCQ")
+    {
         renderer = IQuiltMakerRenderer(rendererAddr);
+        cozyCoMembership = IERC1155(membershipAddr);
 
         // Set the max stock for each initial size. More sizes can be added later
         // along with increasing the stock amount of each.

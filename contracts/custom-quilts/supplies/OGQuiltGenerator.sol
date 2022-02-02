@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
     Original quilts contract address: 0x4C4808459452c137fB9Bf3E824d4D7aC73655F54
  */
 
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "../../utils/Strings.sol";
 
 struct Quilt {
     uint256[5][5] patches;
@@ -49,7 +49,7 @@ contract OGQuiltGenerator {
     }
 
     function getQuiltData(uint256 tokenId) external pure returns (Quilt memory quilt) {
-        string memory seed = Strings.toString(tokenId * 4444);
+        string memory seed = Strings.uintToString(tokenId * 4444);
         RandValues memory rand;
 
         // Determine how big the quilt is

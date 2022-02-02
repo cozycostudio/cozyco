@@ -107,19 +107,19 @@ abstract contract ERC1155 is IERC1155 {
 
         emit TransferSingle(msg.sender, from, to, id, amount);
 
-        if (
-            (to.code.length != 0 && to == address(0)) ||
-            ERC1155TokenReceiver(to).onERC1155Received(msg.sender, from, id, amount, data) !=
-            ERC1155TokenReceiver.onERC1155Received.selector
-        ) revert UnsafeRecipient();
+        // if (
+        //     !(to.code.length == 0 && to != address(0)) ||
+        //     ERC1155TokenReceiver(to).onERC1155Received(msg.sender, from, id, amount, data) !=
+        //     ERC1155TokenReceiver.onERC1155Received.selector
+        // ) revert UnsafeRecipient();
 
-        // require(
-        //     to.code.length == 0
-        //         ? to != address(0)
-        //         : ERC1155TokenReceiver(to).onERC1155Received(msg.sender, from, id, amount, data) ==
-        //             ERC1155TokenReceiver.onERC1155Received.selector,
-        //     "UNSAFE_RECIPIENT"
-        // );
+        require(
+            to.code.length == 0
+                ? to != address(0)
+                : ERC1155TokenReceiver(to).onERC1155Received(msg.sender, from, id, amount, data) ==
+                    ERC1155TokenReceiver.onERC1155Received.selector,
+            "UNSAFE_RECIPIENT"
+        );
     }
 
     function safeBatchTransferFrom(
@@ -149,24 +149,24 @@ abstract contract ERC1155 is IERC1155 {
 
         emit TransferBatch(msg.sender, from, to, ids, amounts);
 
-        if (
-            (to.code.length != 0 && to == address(0)) ||
-            ERC1155TokenReceiver(to).onERC1155BatchReceived(msg.sender, from, ids, amounts, data) !=
-            ERC1155TokenReceiver.onERC1155BatchReceived.selector
-        ) revert UnsafeRecipient();
+        // if (
+        //     !(to.code.length == 0 && to != address(0)) ||
+        //     ERC1155TokenReceiver(to).onERC1155BatchReceived(msg.sender, from, ids, amounts, data) !=
+        //     ERC1155TokenReceiver.onERC1155BatchReceived.selector
+        // ) revert UnsafeRecipient();
 
-        // require(
-        //     to.code.length == 0
-        //         ? to != address(0)
-        //         : ERC1155TokenReceiver(to).onERC1155BatchReceived(
-        //             msg.sender,
-        //             from,
-        //             ids,
-        //             amounts,
-        //             data
-        //         ) == ERC1155TokenReceiver.onERC1155BatchReceived.selector,
-        //     "UNSAFE_RECIPIENT"
-        // );
+        require(
+            to.code.length == 0
+                ? to != address(0)
+                : ERC1155TokenReceiver(to).onERC1155BatchReceived(
+                    msg.sender,
+                    from,
+                    ids,
+                    amounts,
+                    data
+                ) == ERC1155TokenReceiver.onERC1155BatchReceived.selector,
+            "UNSAFE_RECIPIENT"
+        );
     }
 
     function balanceOf(address owner, uint256 id) external view returns (uint256) {
@@ -217,24 +217,24 @@ abstract contract ERC1155 is IERC1155 {
         _balances[to][id] += amount;
         emit TransferSingle(msg.sender, address(0), to, id, amount);
 
-        if (
-            (to.code.length != 0 && to == address(0)) ||
-            ERC1155TokenReceiver(to).onERC1155Received(msg.sender, address(0), id, amount, data) !=
-            ERC1155TokenReceiver.onERC1155Received.selector
-        ) revert UnsafeRecipient();
+        // if (
+        //     !(to.code.length == 0 && to != address(0)) ||
+        //     ERC1155TokenReceiver(to).onERC1155Received(msg.sender, address(0), id, amount, data) !=
+        //     ERC1155TokenReceiver.onERC1155Received.selector
+        // ) revert UnsafeRecipient();
 
-        // require(
-        //     to.code.length == 0
-        //         ? to != address(0)
-        //         : ERC1155TokenReceiver(to).onERC1155Received(
-        //             msg.sender,
-        //             address(0),
-        //             id,
-        //             amount,
-        //             data
-        //         ) == ERC1155TokenReceiver.onERC1155Received.selector,
-        //     "UNSAFE_RECIPIENT"
-        // );
+        require(
+            to.code.length == 0
+                ? to != address(0)
+                : ERC1155TokenReceiver(to).onERC1155Received(
+                    msg.sender,
+                    address(0),
+                    id,
+                    amount,
+                    data
+                ) == ERC1155TokenReceiver.onERC1155Received.selector,
+            "UNSAFE_RECIPIENT"
+        );
     }
 
     function _mintBatch(
@@ -258,30 +258,30 @@ abstract contract ERC1155 is IERC1155 {
 
         emit TransferBatch(msg.sender, address(0), to, ids, amounts);
 
-        if (
-            (to.code.length != 0 && to == address(0)) ||
-            ERC1155TokenReceiver(to).onERC1155BatchReceived(
-                msg.sender,
-                address(0),
-                ids,
-                amounts,
-                data
-            ) !=
-            ERC1155TokenReceiver.onERC1155BatchReceived.selector
-        ) revert UnsafeRecipient();
+        // if (
+        //     !(to.code.length == 0 && to != address(0)) ||
+        //     ERC1155TokenReceiver(to).onERC1155BatchReceived(
+        //         msg.sender,
+        //         address(0),
+        //         ids,
+        //         amounts,
+        //         data
+        //     ) !=
+        //     ERC1155TokenReceiver.onERC1155BatchReceived.selector
+        // ) revert UnsafeRecipient();
 
-        // require(
-        //     to.code.length == 0
-        //         ? to != address(0)
-        //         : ERC1155TokenReceiver(to).onERC1155BatchReceived(
-        //             msg.sender,
-        //             address(0),
-        //             ids,
-        //             amounts,
-        //             data
-        //         ) == ERC1155TokenReceiver.onERC1155BatchReceived.selector,
-        //     "UNSAFE_RECIPIENT"
-        // );
+        require(
+            to.code.length == 0
+                ? to != address(0)
+                : ERC1155TokenReceiver(to).onERC1155BatchReceived(
+                    msg.sender,
+                    address(0),
+                    ids,
+                    amounts,
+                    data
+                ) == ERC1155TokenReceiver.onERC1155BatchReceived.selector,
+            "UNSAFE_RECIPIENT"
+        );
     }
 
     function _burn(

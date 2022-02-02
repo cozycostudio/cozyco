@@ -2,16 +2,18 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "../utils/Strings.sol";
 import "../utils/Base64.sol";
-import "./ISuppliesMetadata.sol";
+import {Quilt} from "./QuiltMaker.sol";
+import "./ISupplyMetadata.sol";
 import "./ISupplyStore.sol";
 import "./SupplySKU.sol";
 
-// import "hardhat/console.sol";
-
 interface IQuiltMakerRenderer {
-    function tokenURI(uint256 tokenId) external view returns (string memory tokenBase64);
+    function tokenURI(uint256 tokenId, Quilt memory quilt)
+        external
+        view
+        returns (string memory tokenBase64);
 
     function validatePatchLayout(
         uint256 size,
@@ -64,29 +66,36 @@ contract QuiltMakerRenderer is Ownable, IQuiltMakerRenderer {
         return bitmap == validBitmap;
     }
 
-    function getItemPart(uint256 sku) internal returns (string memory part) {
+    function _getSupplySVGPart(uint256 sku) internal returns (string memory part) {
         // Get supply store address from storage
         // Lookup the metadata address for the item part with ISupplyStore.getItemMetadataAddress(sku)
-        // Get the part from ISuppliesMetadata.getCompPart(sku)
+        // Get the part from ISupplyMetadata._getSupplySVGPart(sku)
     }
 
-    function tokenImage(uint256 index) public pure returns (string memory imageBase64) {
-        return string(abi.encodePacked("data:image/svg+xml;base64,", index));
+    function _draw(Quilt memory quilt) internal pure returns (string memory imageBase64) {
+        imageBase64 = string(abi.encodePacked("data:image/svg+xml;base64,", quilt.degradation));
     }
 
-    function tokenURI(uint256 tokenId) public pure override returns (string memory tokenBase64) {
+    function tokenURI(uint256 tokenId, Quilt memory quilt)
+        public
+        pure
+        override
+        returns (string memory tokenBase64)
+    {
         string memory json = Base64.encode(
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"name":"Blank patch #","description":"A blank patch, perfect for filling in the gaps in a custom quilt.","image": "',
-                        tokenImage(tokenId),
+                        '{"name":"custom quilt #',
+                        Strings.uintToString(tokenId),
+                        '","description":"a cozy quilt","image": "',
+                        _draw(quilt),
                         '","attributes":[]}'
                     )
                 )
             )
         );
-        return string(abi.encodePacked("data:application/json;base64,", json));
+        tokenBase64 = string(abi.encodePacked("data:application/json;base64,", json));
     }
 
     constructor() Ownable() {}

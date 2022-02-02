@@ -32,5 +32,6 @@ yarn-error.log*
 
 # contracts
 typechain
+typechain-types
 cache
 artifacts
