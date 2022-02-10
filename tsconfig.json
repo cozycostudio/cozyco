@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2018",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,9 +18,19 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "outDir": "dist",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "incremental": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "./typechain", "./test"],
-  "exclude": ["node_modules"],
-  "files": ["./hardhat.config.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "./typechain",
+    "./test"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "files": [
+    "./hardhat.config.ts"
+  ]
 }

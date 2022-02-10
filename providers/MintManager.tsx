@@ -1,7 +1,10 @@
 import { ethers } from "ethers";
 import { useWeb3 } from "../hooks/useWeb3";
 import { createContext, useEffect, useState } from "react";
-import { CozyCoMembership, CozyCoMembership__factory } from "../typechain";
+import {
+  CozyCoMembership,
+  CozyCoMembership__factory,
+} from "../typechain-types";
 
 type MintableContracts = CozyCoMembership;
 
