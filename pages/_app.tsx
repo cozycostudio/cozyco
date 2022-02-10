@@ -38,6 +38,11 @@ function App({ Component, pageProps }: AppProps) {
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={metaImage} />
         <meta name="twitter:card" content="summary_large_image" />
+        <script
+          defer
+          data-domain="cozyco.studio"
+          src="https://plausible.io/js/plausible.js"
+        ></script>
       </Head>
       <ThemeProvider theme={theme}>
         <Web3ReactProvider getLibrary={getLibrary}>
