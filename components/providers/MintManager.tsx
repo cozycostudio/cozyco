@@ -4,7 +4,7 @@ import { createContext, useEffect, useState } from "react";
 import {
   CozyCoMembership,
   CozyCoMembership__factory,
-} from "../typechain-types";
+} from "../../typechain-types";
 
 type MintableContracts = CozyCoMembership;
 

@@ -4,7 +4,7 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
-import { memberships } from "../tokens/cozyco-memberships";
+import { memberships } from "../../tokens/cozyco-memberships";
 
 describe("CCMFriendsOfMetadata contract", () => {
   let ccmFriendsOfMetadata: Contract;

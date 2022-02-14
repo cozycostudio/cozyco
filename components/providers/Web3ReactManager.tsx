@@ -10,7 +10,7 @@ import useAsyncEffect from "use-async-effect";
 import { AbstractConnector } from "@web3-react/abstract-connector";
 import { UnsupportedChainIdError, useWeb3React } from "@web3-react/core";
 import { WalletConnectConnector } from "@web3-react/walletconnect-connector";
-import { getFriendlyAddress, getShortAddress } from "../utils/addresses";
+import { getFriendlyAddress, getShortAddress } from "../../utils/addresses";
 
 export enum Web3Status {
   NOT_READY = "NOT_READY",

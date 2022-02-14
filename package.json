@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ethersproject/providers": "^5.5.2",
+    "@gimmixorg/use-wallet": "^0.0.31",
     "@rari-capital/solmate": "^6.0.0",
     "@reach/dialog": "^0.16.2",
     "@reach/menu-button": "^0.16.2",

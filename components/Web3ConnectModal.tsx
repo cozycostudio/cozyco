@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect } from "react";
 import { AbstractConnector } from "@web3-react/abstract-connector";
 import { injected, walletconnect } from "../utils/connectors";
-import { Web3Status } from "../providers/Web3ReactManager";
-import { useWeb3 } from "../hooks/useWeb3";
-import { useModal } from "../hooks/useModal";
+import { Web3Status } from "./providers/Web3ReactManager";
+import { useWeb3 } from "./hooks/useWeb3";
+import { useModal } from "./hooks/useModal";
 import styled from "styled-components";
 import { H2, Paragraph } from "./Typography";
 
