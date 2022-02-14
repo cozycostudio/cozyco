@@ -30,7 +30,7 @@ const deleteGlobalCommand = (commandID) =>
   // });
 
   // await createGlobalCommand({
-  //   name: "quiltyyy",
+  //   name: "cozy",
   //   description: "Get cozy under a quilt",
   // });
 
@@ -52,7 +52,7 @@ const deleteGlobalCommand = (commandID) =>
   //   ],
   // });
 
-  const commands = await getGlobalCommands();
+  const { data: commands } = await getGlobalCommands();
   console.log(commands);
 })().catch((err) => {
   console.error(err);

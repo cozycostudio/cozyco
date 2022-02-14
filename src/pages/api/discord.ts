@@ -4,14 +4,23 @@ import {
   APIInteractionResponse,
 } from "discord-api-types/v8";
 import nacl from "tweetnacl";
+import axios from "axios";
 import { getQuilt } from "../../utils/discord/quilt";
 import { getCozyQuilt } from "../../utils/discord/cozy";
 import { createVibe, getRandomVibe } from "../../utils/discord/vibe";
 
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const DISCORD_CLIENT_PUBLIC_KEY = process.env.DISCORD_CLIENT_PUBLIC_KEY;
-if (!DISCORD_CLIENT_PUBLIC_KEY) {
+
+if (!DISCORD_CLIENT_ID || !DISCORD_BOT_TOKEN || !DISCORD_CLIENT_PUBLIC_KEY) {
   throw new Error("Environment variables not configured correctly");
 }
+
+const discordClient = axios.create({
+  baseURL: "https://discord.com/api/v8",
+  headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
+});
 
 // disable body parsing, need the raw body
 export const config = {
@@ -30,6 +39,32 @@ const handler = async (
   const options = interaction.data.options;
   const channelId = interaction.channel_id;
   const userId = interaction.user && interaction.user.id;
+
+  const VERIFIED_ROLE_ID = "900207882828668988";
+
+  // @ts-ignore
+  if (interaction.data.custom_id === "let_me_in") {
+    const guildId = interaction.guild_id;
+    const memberId = interaction.member?.user.id;
+    await discordClient
+      .put(`/guilds/${guildId}/members/${memberId}/roles/${VERIFIED_ROLE_ID}`)
+      .catch(() => {
+        return res.status(200).json({
+          type: 4,
+          data: {
+            content: "Oops! Something went wrong. Please try again.",
+            flags: 1 << 6,
+          },
+        });
+      });
+    return res.status(200).json({
+      type: 4,
+      data: {
+        content: "You're in! <a:cozypet:903460062390001694>",
+        flags: 1 << 6,
+      },
+    });
+  }
 
   switch (name) {
     case "pet":
@@ -58,6 +93,7 @@ const handler = async (
             content: `Sorry${
               userId ? ` <@${userId}>` : ""
             }, that doesn't look like a valid vibe link. Any URL that starts with \`http\` will do.`,
+            flags: 1 << 6,
           },
         });
       }
@@ -81,7 +117,10 @@ const handler = async (
     default:
       return res.status(200).json({
         type: 4,
-        data: { content: "Oops! I don't recognize this command." },
+        data: {
+          content: "Oops! I don't recognize this command.",
+          flags: 1 << 6,
+        },
       });
   }
 };

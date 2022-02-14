@@ -40,6 +40,7 @@ export function getQuilt(
   if (channelId !== finestQuiltsChannelId) {
     return {
       content: `Whoops, try that command in <#${finestQuiltsChannelId}> fren`,
+      flags: 1 << 6,
     };
   }
 
@@ -47,6 +48,7 @@ export function getQuilt(
     return {
       content:
         "Oh no, that doesn't look like a valid quilt number! Try between 1-4000.",
+      flags: 1 << 6,
     };
   }
 
@@ -54,6 +56,7 @@ export function getQuilt(
   if (!token) {
     return {
       content: "Couldn't find that quilt for some reason. Try again maybe?",
+      flags: 1 << 6,
     };
   }
 
