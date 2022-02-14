@@ -6,6 +6,7 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "solidity-coverage";
+import "@symblox/hardhat-abi-gen";
 
 dotenv.config();
 
@@ -30,24 +31,30 @@ const config: HardhatUserConfig = {
       chainId: 1337,
     },
     mainnet: {
-      url: process.env.MAINNET_URL || "",
+      url: `https://mainnet.infura.io/v3/${
+        process.env.NEXT_PUBLIC_INFURA_ID || ""
+      }`,
       accounts:
-        process.env.MAINNET_PRIVATE_KEY !== undefined
-          ? [`0x${process.env.MAINNET_PRIVATE_KEY}`]
+        process.env.DEPLOY_PRIVATE_KEY_MAINNET !== undefined
+          ? [`0x${process.env.DEPLOY_PRIVATE_KEY_MAINNET}`]
           : [],
     },
     ropsten: {
-      url: process.env.ROPSTEN_URL || "",
+      url: `https://ropsten.infura.io/v3/${
+        process.env.NEXT_PUBLIC_INFURA_ID || ""
+      }`,
       accounts:
-        process.env.ROPSTEN_PRIVATE_KEY !== undefined
-          ? [`0x${process.env.ROPSTEN_PRIVATE_KEY}`]
+        process.env.DEPLOY_PRIVATE_KEY_ROPSTEN !== undefined
+          ? [`0x${process.env.DEPLOY_PRIVATE_KEY_ROPSTEN}`]
           : [],
     },
     rinkeby: {
-      url: process.env.RINKEBY_URL || "",
+      url: `https://rinkeby.infura.io/v3/${
+        process.env.NEXT_PUBLIC_INFURA_ID || ""
+      }`,
       accounts:
-        process.env.RINKEBY_PRIVATE_KEY !== undefined
-          ? [`0x${process.env.RINKEBY_PRIVATE_KEY}`]
+        process.env.DEPLOY_PRIVATE_KEY_RINKEBY !== undefined
+          ? [`0x${process.env.DEPLOY_PRIVATE_KEY_RINKEBY}`]
           : [],
     },
   },
@@ -61,6 +68,12 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  abiExporter: {
+    path: "./src/abis",
+    clear: true,
+    flat: true,
+    spacing: 2,
   },
 };
 
