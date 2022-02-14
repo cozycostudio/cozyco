@@ -1,6 +1,14 @@
+import QuiltsABI from "../../tokens/quilts/abi.json";
 import CozyCoMembershipABI from "../abis/CozyCoMembership.json";
 
 export const deployedContracts = {
+  quilts: {
+    addresses: {
+      1: "0x4C4808459452c137fB9Bf3E824d4D7aC73655F54",
+    },
+    supportedChainIds: [1],
+    abi: QuiltsABI,
+  },
   cozyCoMembership: {
     addresses: {
       1: "0xbfE56434Ff917d8eB42677d06C0Be2b57EA79F3a",
