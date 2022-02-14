@@ -27,6 +27,7 @@ import {
 } from "./helpers/mock-data";
 
 describe("Custom quilts", () => {
+  const zero = ethers.constants.AddressZero;
   let cozyCoQuiltSupplyStore: CozyCoQuiltSupplyStore;
   let cozyCoMembership: CozyCoMembership;
   let quiltMaker: QuiltMaker;
@@ -200,7 +201,7 @@ describe("Custom quilts", () => {
           .to.emit(cozyCoQuiltSupplyStore, "TransferBatch")
           .withArgs(
             customerPublic.address,
-            ethers.constants.AddressZero,
+            zero,
             customerPublic.address,
             ids.map((i) => BigNumber.from(i)),
             amounts.map((i) => BigNumber.from(i))
@@ -220,7 +221,7 @@ describe("Custom quilts", () => {
           .to.emit(cozyCoQuiltSupplyStore, "TransferBatch")
           .withArgs(
             customerMember.address,
-            ethers.constants.AddressZero,
+            zero,
             customerMember.address,
             ids.map((i) => BigNumber.from(i)),
             amounts.map((i) => BigNumber.from(i))
