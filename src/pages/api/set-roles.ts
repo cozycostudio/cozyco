@@ -27,6 +27,7 @@ const roleMap = {
   // "store manager": "902404059020025857",
   // "pretty cozy": "900207882828668988",
   "friend of cozy co": "942837779761614890",
+  snuggler: "943068242799378432",
   "quilt collector": "901649257038237758",
 };
 
@@ -56,6 +57,10 @@ export default async (
   const newRoles: string[] = [];
   if (numOfQuilts > 0) {
     newRoles.push(roleMap["quilt collector"]);
+  }
+
+  if (numOfQuilts > 4) {
+    newRoles.push(roleMap["snuggler"]);
   }
 
   if (numOfFriendsMembership > 0) {
