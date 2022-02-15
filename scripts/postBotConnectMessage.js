@@ -15,12 +15,12 @@ const discordClient = axios.create({
   headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
 });
 
-const CONNECT_URL = "https://3a1c-81-100-25-51.ngrok.io/";
+const CONNECT_URL = "https://cozyco.studio/discord-roles";
 
 (async () => {
   await discordClient.post(`/channels/${channelId}/messages`, {
     content:
-      "Do you have a cozy co NFT? Connect your wallet to Discord below, and any roles will be assigned to you <a:cozypet:903460062390001694>",
+      "Do you have a cozy co NFT? Connect your wallet to Discord below. You'll get certain roles based on the NFTs you own like quilts or our membership card",
     components: [
       {
         type: 1,
