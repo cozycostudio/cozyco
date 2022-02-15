@@ -1,5 +1,5 @@
 require("dotenv").config();
-const axios = require("axios");
+require("isomorphic-fetch");
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -7,21 +7,42 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 if (!DISCORD_CLIENT_ID || !DISCORD_BOT_TOKEN) {
   throw new Error("Environment variables not configured correctly");
 }
-const discordClient = axios.create({
-  baseURL: "https://discord.com/api/v8",
-  headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
-});
 
 const getGlobalCommands = () =>
-  discordClient.get(`/applications/${DISCORD_CLIENT_ID}/commands`);
+  fetch(
+    `https://discord.com/api/v8/applications/${DISCORD_CLIENT_ID}/commands`,
+    {
+      headers: {
+        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  ).then((res) => res.json());
 
 const createGlobalCommand = (command) =>
-  discordClient.post(`/applications/${DISCORD_CLIENT_ID}/commands`, command);
+  fetch(
+    `https://discord.com/api/v8/applications/${DISCORD_CLIENT_ID}/commands`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(command),
+    }
+  ).then((res) => res.json());
 
-const deleteGlobalCommand = (commandID) =>
-  discordClient.delete(
-    `/applications/${DISCORD_CLIENT_ID}/commands/${commandID}`
-  );
+const deleteGlobalCommand = (commandId) =>
+  fetch(
+    `https://discord.com/api/v8/applications/${DISCORD_CLIENT_ID}/commands/${commandId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  ).then((res) => res.json());
 
 (async () => {
   // await createGlobalCommand({
@@ -52,7 +73,7 @@ const deleteGlobalCommand = (commandID) =>
   //   ],
   // });
 
-  const { data: commands } = await getGlobalCommands();
+  const commands = await getGlobalCommands();
   console.log(commands);
 })().catch((err) => {
   console.error(err);

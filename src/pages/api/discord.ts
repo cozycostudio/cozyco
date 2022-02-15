@@ -4,7 +4,7 @@ import {
   APIInteractionResponse,
 } from "discord-api-types/v8";
 import nacl from "tweetnacl";
-import axios from "axios";
+import fetch from "isomorphic-fetch";
 import { getQuilt } from "../../utils/discord/quilt";
 import { getCozyQuilt } from "../../utils/discord/cozy";
 import { createVibe, getRandomVibe } from "../../utils/discord/vibe";
@@ -17,12 +17,7 @@ if (!DISCORD_CLIENT_ID || !DISCORD_BOT_TOKEN || !DISCORD_CLIENT_PUBLIC_KEY) {
   throw new Error("Environment variables not configured correctly");
 }
 
-const discordClient = axios.create({
-  baseURL: "https://discord.com/api/v8",
-  headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
-});
-
-// disable body parsing, need the raw body
+// disable body parsing, we need the raw body for discord interactions
 export const config = {
   api: {
     bodyParser: false,
@@ -46,17 +41,24 @@ const handler = async (
   if (interaction.data.custom_id === "let_me_in") {
     const guildId = interaction.guild_id;
     const memberId = interaction.member?.user.id;
-    await discordClient
-      .put(`/guilds/${guildId}/members/${memberId}/roles/${VERIFIED_ROLE_ID}`)
-      .catch(() => {
-        return res.status(200).json({
-          type: 4,
-          data: {
-            content: "Oops! Something went wrong. Please try again.",
-            flags: 1 << 6,
-          },
-        });
+    await fetch(
+      `https://discord.com/api/v8/guilds/${guildId}/members/${memberId}/roles/${VERIFIED_ROLE_ID}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    ).catch(() => {
+      return res.status(200).json({
+        type: 4,
+        data: {
+          content: "Oops! Something went wrong. Please try again.",
+          flags: 1 << 6,
+        },
       });
+    });
     return res.status(200).json({
       type: 4,
       data: {

@@ -1,4 +1,4 @@
-import QuiltsABI from "../../tokens/quilts/abi.json";
+import QuiltsABI from "../abis/Quilts.json";
 import CozyCoMembershipABI from "../abis/CozyCoMembership.json";
 
 export const deployedContracts = {

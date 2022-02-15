@@ -55,8 +55,6 @@ function JoinCozyCo() {
     );
   }
 
-  console.log(network);
-
   const [balance, setBalance] = useState(0);
 
   const { data: merkleProof } = useSWR<GetMerkleProofResponse>(

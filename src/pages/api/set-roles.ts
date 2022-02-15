@@ -23,9 +23,6 @@ const membershipContract = new Contract(
 );
 
 const roleMap = {
-  // "quilt stitcher": "897406897324437545",
-  // "store manager": "902404059020025857",
-  // "pretty cozy": "900207882828668988",
   "friend of cozy co": "942837779761614890",
   snuggler: "943068242799378432",
   "quilt collector": "901649257038237758",
