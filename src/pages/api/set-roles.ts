@@ -29,6 +29,7 @@ const roleMap = {
   "friend of cozy co": "942837779761614890",
   snuggler: "943068242799378432",
   "quilt collector": "901649257038237758",
+  "pretty cozy": "900207882828668988",
 };
 
 type RoleName = keyof typeof roleMap;
@@ -55,6 +56,8 @@ export default async (
   const numOfFriendsMembership = await membershipContract.balanceOf(address, 1);
 
   const newRoles: string[] = [];
+  newRoles.push(roleMap["pretty cozy"]);
+
   if (numOfQuilts > 0) {
     newRoles.push(roleMap["quilt collector"]);
   }

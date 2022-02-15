@@ -40,6 +40,10 @@ const roleMap: RoleMap = {
     label: "quilt collector",
     color: "#5d98f1",
   },
+  "900207882828668988": {
+    label: "pretty cozy",
+    color: "#95d17a",
+  },
 };
 
 const Roles = styled.div`
