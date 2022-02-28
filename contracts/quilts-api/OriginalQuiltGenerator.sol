@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
     Original quilts contract address: 0x4C4808459452c137fB9Bf3E824d4D7aC73655F54
  */
 
-import "../../utils/Strings.sol";
+import "../utils/Strings.sol";
 
 struct Quilt {
     uint256[5][5] patches;

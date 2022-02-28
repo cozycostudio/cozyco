@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
 
-import "./OGQuiltGenerator.sol";
+import "../../quilts-api/OriginalQuiltGenerator.sol";
 import {ICozyCoQuiltSupplyStore} from "../CozyCoQuiltSupplyStore.sol";
 
 contract OGPatches {
